@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandda Bot - Simulador de Lógica</title>
+    <title>Pandda Bot - Simulador (Versão Atualizada)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -78,7 +78,8 @@
             sessionTimeout: 30, // minutos
             links: {
                 payment: "https://pagar.pandda.vip/",
-                guide: "pandda.vip/guia"
+                guide: "pandda.vip/guia",
+                faq: "pandda.vip/FAQ"
             }
         };
 
@@ -136,7 +137,7 @@
             switch (input) {
                 case "1": // Como funciona
                     botReply(`*Como funciona o Plano DualAPP*\n\nÉ simples! Instale o APP adequado clicando no nosso guia completo: ${CONFIG.links.guide}\n\n✅ Compatível com Smart TVs, TV Box, Celulares.\n✅ Funciona via Internet.\n✅ Validade de 30 dias.\n✅ Possibilidade de telas adicionais.`);
-                    setTimeout(() => sendMainMenu(), 2000); // Reenvia menu após leitura
+                    setTimeout(() => sendMainMenu(), 2000); 
                     break;
                 case "2": // Planos
                     botReply(`*Nossos Planos*\n\n📺 *Plano DualAPP Base* (1 Tela): R$ ${CONFIG.prices.base.toFixed(2)}\n📺 *Tela Adicional*: + R$ ${CONFIG.prices.extra.toFixed(2)} cada\n\nQualidade máxima e acesso a 2 APPs para maior disponibilidade!`);
@@ -148,9 +149,9 @@
                 case "4": // Teste
                     startTestFlow();
                     break;
-                case "5": // Dúvidas
-                    botReply(`*Dúvidas Frequentes*\n\n🔸 *Posso assistir em mais de um aparelho?*\nSim, se contratar telas adicionais. O plano base é para 1 reprodução simultânea.\n\n🔸 *Posso assistir no celular?*\nSim! Basta baixar o app no nosso guia.\n\n🔸 *Precisa de antena?*\nNão, apenas internet.`);
-                    setTimeout(() => sendMainMenu(), 3000);
+                case "5": // Dúvidas (ATUALIZADO)
+                    botReply(`*Dúvidas Frequentes*\n\n🔸 *Posso assistir em mais de um aparelho?*\nSim, se contratar telas adicionais. O plano base é para 1 reprodução simultânea.\n\n🔸 *Posso assistir no celular?*\nSim! Basta baixar o app no nosso guia.\n\n🔸 *Quais conteúdos estão disponíveis?*\nConteúdo completo: Canais ao vivo, Filmes, Séries, Novelas e Doramas. Solicite um teste e verifique nossa lista atualizada.\n\n🔗 Para mais dúvidas acesse: ${CONFIG.links.faq}`);
+                    setTimeout(() => sendMainMenu(), 4000);
                     break;
                 case "6": // Falar com atendente
                     botReply("Um atendente humano foi notificado e entrará em contato em breve.");
@@ -193,7 +194,6 @@
                     return;
                 }
                 if (["2", "3"].includes(input)) {
-                    // Mostrar resumo de valores
                     const qtd = parseInt(input);
                     let total = CONFIG.prices.base + (CONFIG.prices.extra * (qtd - 1));
                     botReply(`Calculando para ${qtd} telas...\nTotal: R$ ${total.toFixed(2)}`);
@@ -211,17 +211,15 @@
             
             botReply(`Falta pouco! 🐼\n\nFaça o pagamento clicando no link seguro:\n🔗 ${link}\n\nAssim que aprovado, você receberá seus dados aqui.`);
             
-            // Simular DB e Log
             addLog("SUPABASE", `INSERT INTO payments (code, user, amount, screens) VALUES ('${code}', '${session.phone}', ${total}, ${screens})`);
             addLog("MERCADOPAGO", `Gerando preferência de R$${total.toFixed(2)} para URL ${link}`);
             
-            // Resetar para menu após um tempo ou manter sessão aberta aguardando webhook
             session.status = "IDLE"; 
             session.temp_data = { awaiting_payment: code };
             updateSupabaseView();
         }
 
-        // --- FLUXO DE TESTE ---
+        // --- FLUXO DE TESTE (ATUALIZADO) ---
         function startTestFlow() {
             session.status = "TEST_FLOW";
             session.temp_data = {};
@@ -236,6 +234,7 @@
                     botReply("1️⃣ Iniciar teste o mais breve possível\n2️⃣ Agendar para outro horário");
                 } else {
                     session.step = 2; // Força agendamento
+                    session.temp_data.mode = "SCHEDULE";
                     botReply(`Estamos fora do horário de envio imediato (09h às 20h).\nVamos agendar seu teste!`);
                     askReferral();
                 }
@@ -244,7 +243,40 @@
         }
 
         function handleTestFlow(input, currentHour) {
-            // Passo 1: Escolha Imediato vs Agendado (Só aparece se estiver no horário)
+            
+            // --- EDIÇÃO DE DADOS (Sub-steps) ---
+            if (session.step === 'EDIT_NAME') {
+                session.temp_data.name = input;
+                sendTestSummary(); // Volta ao resumo
+                return;
+            }
+            if (session.step === 'EDIT_REF') {
+                 if (input.length > 3) {
+                    session.temp_data.referral = input;
+                    session.temp_data.duration = "24h";
+                    botReply("✅ Código atualizado para válido (24h).");
+                } else {
+                    session.temp_data.referral = null;
+                    session.temp_data.duration = "6h";
+                    botReply("Código removido/inválido (6h).");
+                }
+                setTimeout(() => sendTestSummary(), 1000);
+                return;
+            }
+            if (session.step === 'EDIT_TIME') {
+                const chosen = parseInt(input);
+                if (chosen > currentHour && chosen <= CONFIG.hours.close && chosen >= CONFIG.hours.open) {
+                    session.temp_data.schedule_time = chosen + ":00";
+                    sendTestSummary();
+                } else {
+                    botReply("Horário inválido. Digite um horário válido da lista anterior.");
+                }
+                return;
+            }
+
+            // --- FLUXO NORMAL ---
+
+            // Passo 1: Escolha Imediato vs Agendado
             if (session.step === 1) {
                 if (input === "1") {
                     session.temp_data.mode = "NOW";
@@ -258,10 +290,9 @@
                 return;
             }
 
-            // Passo 2: Código de Indicação (Lógica compartilhada)
+            // Passo 2: Código de Indicação
             if (session.step === 2) {
-                // Validação simples de código
-                if (input.length > 3) {
+                if (input.length > 3 && input.toLowerCase() !== 'não' && input.toLowerCase() !== 'nao') {
                     session.temp_data.referral = input;
                     session.temp_data.duration = "24h";
                     botReply("✅ Código válido! Seu teste será de 24h e seu indicador ganha desconto.");
@@ -271,14 +302,11 @@
                     botReply("Sem código ou código curto. Seu teste será de 6h.");
                 }
                 
-                // Decide próximo passo basead no modo
-                if (session.temp_data.mode === "NOW" || (currentHour >= CONFIG.hours.open && currentHour < CONFIG.hours.close && session.temp_data.mode !== "SCHEDULE")) {
-                    // Se for AGORA
+                if (session.temp_data.mode === "NOW") {
                     session.temp_data.schedule_time = "Imediato";
                     session.step = 4; // Pula agendamento
                     botReply("Qual seu nome para gerarmos o teste?");
                 } else {
-                    // Vai para agendamento
                     session.step = 3;
                     showAvailableHours(currentHour);
                 }
@@ -303,22 +331,15 @@
             // Passo 4: Nome
             if (session.step === 4) {
                 session.temp_data.name = input;
-                session.step = 5;
-                
-                let resumo = `📋 *Resumo da Solicitação*\n\n👤 Nome: ${session.temp_data.name}\n🕒 Início: ${session.temp_data.schedule_time || "Imediato"}\n⏳ Duração: ${session.temp_data.duration}\n🎟 Código: ${session.temp_data.referral || "Nenhum"}`;
-                
-                botReply(resumo);
-                setTimeout(() => botReply("Os dados estão corretos?\n1️⃣ Sim, confirmar\n2️⃣ Não, alterar Nome"), 500);
-                updateSupabaseView();
+                sendTestSummary();
                 return;
             }
 
-            // Passo 5: Confirmação
+            // Passo 5: Confirmação e Edição (ATUALIZADO)
             if (session.step === 5) {
                 if (input === "1") {
                     botReply("✅ Solicitação enviada! Aguarde, em breve você receberá os dados de acesso.");
                     
-                    // Disparo Discord
                     const discordPayload = {
                         title: "🚀 Nova Solicitação de Teste",
                         fields: [
@@ -330,9 +351,26 @@
                     addLog("DISCORD", JSON.stringify(discordPayload, null, 2));
                     
                     session.status = "IDLE";
-                } else if (input === "2") {
-                    session.step = 4;
-                    botReply("Ok, digite seu nome novamente:");
+                } 
+                else if (input === "2") {
+                    session.step = 'EDIT_NAME';
+                    botReply("Digite o novo Nome:");
+                }
+                else if (input === "3") {
+                    session.step = 'EDIT_REF';
+                    botReply("Digite o novo Código de Indicação (ou 'não'):");
+                }
+                else if (input === "4" && session.temp_data.mode === "SCHEDULE") {
+                    session.step = 'EDIT_TIME';
+                    showAvailableHours(currentHour);
+                }
+                else if (input === "0") {
+                    botReply("Solicitação cancelada. Voltando ao menu...");
+                    session.status = "IDLE";
+                    setTimeout(() => sendMainMenu(), 1000);
+                }
+                else {
+                    botReply("Opção inválida. Digite o número correspondente à opção desejada.");
                 }
                 updateSupabaseView();
                 return;
@@ -355,14 +393,13 @@
         }
 
         function askReferral() {
-            session.step = 2; // Estado de esperar código
+            session.step = 2; 
             botReply("Você possui algum código de indicação? (Digite o código ou 'não')");
             updateSupabaseView();
         }
 
         function showAvailableHours(currentHour) {
             let options = [];
-            // Lógica: Se for antes das 9, começa do 9. Se for depois, começa da hora atual + 1
             let start = currentHour < 9 ? 9 : currentHour + 1;
             
             for (let h = start; h <= 20; h++) {
@@ -370,11 +407,30 @@
             }
             
             if (options.length === 0) {
-                botReply("Não há mais horários disponíveis hoje. Tente amanhã.");
-                session.status = "IDLE";
+                botReply("Não há mais horários disponíveis hoje para agendar.");
             } else {
-                botReply(`Horários disponíveis para hoje:\n${options.join(", ")}\n\nDigite apenas o número (ex: 16)`);
+                botReply(`Horários disponíveis:\n${options.join(", ")}\n\nDigite apenas o número (ex: 16)`);
             }
+        }
+
+        function sendTestSummary() {
+            session.step = 5;
+            let isScheduled = session.temp_data.mode === "SCHEDULE";
+            
+            let resumo = `📋 *Resumo da Solicitação*\n\n` +
+                         `👤 Nome: ${session.temp_data.name}\n` +
+                         `🎟 Código: ${session.temp_data.referral || "Nenhum"}\n` +
+                         `🕒 Início: ${session.temp_data.schedule_time || "Imediato"}\n` +
+                         `⏳ Duração: ${session.temp_data.duration}\n\n` +
+                         `*Os dados estão corretos?*\n\n` +
+                         `1️⃣ Sim, confirmar solicitação\n` +
+                         `2️⃣ Alterar Nome\n` +
+                         `3️⃣ Alterar Código Indicação\n` +
+                         (isScheduled ? `4️⃣ Alterar Horário\n` : ``) +
+                         `0️⃣ Voltar ao Menu Principal`;
+            
+            botReply(resumo);
+            updateSupabaseView();
         }
 
         // --- FUNÇÕES DE UI ---
@@ -384,7 +440,6 @@
             const text = input.value;
             if (!text) return;
 
-            // Renderiza msg do usuário
             const chatBox = document.getElementById('chatBox');
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message-out text-white';
@@ -394,7 +449,6 @@
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
 
-            // Processa lógica
             setTimeout(() => processBotLogic(text), 500);
         }
 
@@ -402,7 +456,6 @@
             const chatBox = document.getElementById('chatBox');
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message-in text-white';
-            // Converte quebras de linha e negrito simples
             msgDiv.innerHTML = text.replace(/\n/g, '<br>').replace(/\*(.*?)\*/g, '<b>$1</b>');
             chatBox.appendChild(msgDiv);
             chatBox.scrollTop = chatBox.scrollHeight;
@@ -428,7 +481,6 @@
             botReply("Sistema reiniciado. Digite algo para começar.");
         }
 
-        // Inicialização
         updateSupabaseView();
         botReply("Sistema Inicializado. Digite 'oi' para começar.");
 
