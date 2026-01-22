@@ -3,189 +3,435 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandda - Atendimento Humanizado</title>
+    <title>Pandda Bot - Simulador de Lógica</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root { --whatsapp-green: #25D366; --bg-dark: #121b22; --panel-bg: #1f2c33; --text-light: #e9edef; --accent: #00a884; }
-        body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-dark); color: var(--text-light); }
-        #chat-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; }
-        #admin-panel { width: 380px; background: var(--panel-bg); padding: 20px; overflow-y: auto; border-left: 1px solid #333; }
-        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 85%; padding: 12px; border-radius: 10px; line-height: 1.4; margin: 5px 0; white-space: pre-wrap; font-size: 0.95rem; }
-        .bot { background: #202c33; align-self: flex-start; border-bottom-left-radius: 0; border: 1px solid #333; }
-        .user { background: var(--accent); align-self: flex-end; border-bottom-right-radius: 0; color: white; }
-        #input-area { padding: 20px; background: #202c33; display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 20px; border: none; background: #2a3942; color: white; outline: none; }
-        button { background: var(--accent); border: none; padding: 10px 25px; border-radius: 20px; color: white; cursor: pointer; font-weight: bold; }
-        .session-data { background: #000; padding: 10px; border-radius: 8px; font-family: monospace; color: #0f0; margin-bottom: 20px; font-size: 0.75rem; border: 1px solid #333; }
-        .log-entry { font-size: 0.75rem; color: #888; font-family: monospace; margin-bottom: 5px; border-bottom: 1px solid #2a3942; padding-bottom: 2px; }
-        h2 { color: var(--whatsapp-green); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 10px; }
+        body { background-color: #111b21; color: #e9edef; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .chat-bg { background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-repeat: repeat; opacity: 0.1; position: absolute; top:0; left:0; right:0; bottom:0; z-index: 0; }
+        .message-in { background-color: #202c33; border-radius: 0 10px 10px 10px; padding: 8px 10px; margin-bottom: 10px; max-width: 80%; position: relative; z-index: 10; font-size: 14px; }
+        .message-out { background-color: #005c4b; border-radius: 10px 0 10px 10px; padding: 8px 10px; margin-bottom: 10px; max-width: 80%; margin-left: auto; position: relative; z-index: 10; font-size: 14px; }
+        .json-view { font-family: 'Courier New', Courier, monospace; font-size: 12px; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #111b21; }
+        ::-webkit-scrollbar-thumb { background: #374045; border-radius: 4px; }
     </style>
 </head>
-<body>
+<body class="h-screen flex flex-col md:flex-row overflow-hidden">
 
-    <div id="chat-container">
-        <div style="padding: 15px; background: #202c33; font-weight: bold; border-bottom: 1px solid #333;">🐼 Central de Atendimento Pandda</div>
-        <div id="messages"></div>
-        <div id="input-area">
-            <input type="text" id="userInput" placeholder="Escreva sua mensagem aqui..." onkeypress="handleKeyPress(event)" autofocus>
-            <button onclick="sendMessage()">Enviar</button>
+    <div class="w-full md:w-1/3 flex flex-col border-r border-gray-700 relative bg-[#0b141a]">
+        <div class="chat-bg pointer-events-none"></div>
+        
+        <div class="bg-[#202c33] p-3 flex items-center justify-between z-20 shadow-md">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">P</div>
+                <div>
+                    <h3 class="font-semibold text-gray-100">Pandda Bot</h3>
+                    <p class="text-xs text-gray-400">Online via Termux</p>
+                </div>
+            </div>
+            <div class="flex flex-col items-end">
+                <label class="text-[10px] text-gray-400">Hora Simulada:</label>
+                <input type="number" id="simulatedHour" class="bg-gray-700 text-white text-xs p-1 rounded w-16 text-center" min="0" max="23" value="10">
+            </div>
+        </div>
+
+        <div id="chatBox" class="flex-1 overflow-y-auto p-4 z-10 flex flex-col">
+            </div>
+
+        <div class="bg-[#202c33] p-3 flex gap-2 z-20">
+            <input type="text" id="userInput" class="flex-1 bg-[#2a3942] rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-green-500" placeholder="Digite uma mensagem..." onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()" class="bg-[#00a884] w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#008f6f] transition"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
-    <div id="admin-panel">
-        <h2>Dados da Sessão (Supabase)</h2>
-        <div id="sessionView" class="session-data">{}</div>
-        <h2>Histórico de Ações (Logs)</h2>
-        <div id="logs"></div>
+    <div class="w-full md:w-2/3 bg-[#0b141a] flex flex-col p-4 gap-4 overflow-hidden">
+        
+        <div class="flex justify-between items-center">
+            <h2 class="text-xl font-bold text-green-400"><i class="fas fa-server mr-2"></i>Dashboard do Sistema</h2>
+            <button onclick="resetSystem()" class="text-xs bg-red-600 px-3 py-1 rounded hover:bg-red-700">Reiniciar Sessão</button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full overflow-hidden">
+            
+            <div class="bg-[#1f2937] rounded-lg p-4 flex flex-col border border-gray-700 shadow-lg">
+                <h3 class="text-blue-400 font-bold mb-2 text-sm uppercase"><i class="fas fa-database mr-2"></i>Supabase (Tabela: Sessions)</h3>
+                <div class="flex-1 bg-black rounded p-3 overflow-y-auto json-view text-green-300" id="supabaseView">
+                    // Aguardando interação...
+                </div>
+            </div>
+
+            <div class="bg-[#1f2937] rounded-lg p-4 flex flex-col border border-gray-700 shadow-lg">
+                <h3 class="text-indigo-400 font-bold mb-2 text-sm uppercase"><i class="fab fa-discord mr-2"></i>Logs & Webhooks</h3>
+                <div class="flex-1 bg-black rounded p-3 overflow-y-auto json-view text-gray-300" id="logsView">
+                    // Logs de sistema...
+                </div>
+            </div>
+        </div>
     </div>
 
-<script>
-    let session = { step: 'START', name: '', email: '', indicacao: '', horario: '', test_mode: '' };
+    <script>
+        // --- CONFIGURAÇÃO DO SISTEMA ---
+        const CONFIG = {
+            prices: { base: 34.90, extra: 17.90 },
+            hours: { open: 9, close: 20 },
+            sessionTimeout: 30, // minutos
+            links: {
+                payment: "https://pagar.pandda.vip/",
+                guide: "pandda.vip/guia"
+            }
+        };
 
-    function addLog(msg) {
-        const logs = document.getElementById('logs');
-        const time = new Date().toLocaleTimeString();
-        logs.innerHTML = `<div class="log-entry">[${time}] ${msg}</div>` + logs.innerHTML;
-    }
+        // --- ESTADO INICIAL (Sessão do Usuário) ---
+        let session = {
+            phone: "5511999999999",
+            status: "IDLE", // IDLE, MENU, TEST_FLOW, BUY_FLOW
+            step: 0,
+            last_interaction: new Date(),
+            temp_data: {} // Armazena dados temporários (nome, horário agendado, telas)
+        };
 
-    function botReply(text) {
-        setTimeout(() => {
-            const div = document.createElement('div');
-            div.className = 'msg bot'; div.innerHTML = text;
-            document.getElementById('messages').appendChild(div);
-            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-            document.getElementById('sessionView').innerText = JSON.stringify(session, null, 2);
-        }, 400);
-    }
+        // --- LÓGICA DO BOT ---
 
-    function showMainMenu(txt = "") {
-        session.step = 'MENU_PRINCIPAL';
-        const saudacao = new Date().getHours() < 12 ? "Bom dia" : new Date().getHours() < 18 ? "Boa tarde" : "Boa noite";
-        botReply(`${txt ? txt + "\n\n" : ""}${saudacao}! Seja muito bem-vindo à **Pandda**. 😊\n\nSerá um prazer te atender! Como posso ser útil hoje?\n\n1️⃣ Conhecer o sistema Pandda\n2️⃣ Consultar Planos e Valores\n3️⃣ Solicitar um Teste Gratuito`);
-    }
+        function processBotLogic(input) {
+            const hour = parseInt(document.getElementById('simulatedHour').value);
+            const cleanInput = input.trim();
+            
+            // Log de entrada
+            addLog("INPUT", `Usuário enviou: "${cleanInput}"`);
 
-    function handleUserInput(input) {
-        const msg = input.toLowerCase().trim();
-        addLog(`Usuário digitou: "${msg}" | Estado atual: ${session.step}`);
+            // Atualiza timestamp
+            session.last_interaction = new Date();
+            updateSupabaseView();
 
-        if (msg === '0') { 
-            addLog(`Comando de retorno ao menu detectado.`);
-            showMainMenu("Certinho! Voltamos ao início."); 
-            return; 
+            // 1. Verifica estado IDLE ou Resposta Genérica
+            if (session.status === "IDLE") {
+                sendGreeting(hour);
+                session.status = "MENU";
+                session.step = 0;
+                updateSupabaseView();
+                return;
+            }
+
+            // 2. Roteamento baseado no Status
+            switch (session.status) {
+                case "MENU":
+                    handleMenu(cleanInput);
+                    break;
+                case "TEST_FLOW":
+                    handleTestFlow(cleanInput, hour);
+                    break;
+                case "BUY_FLOW":
+                    handleBuyFlow(cleanInput);
+                    break;
+                default:
+                    botReply("Erro de estado. Digite 'oi' para reiniciar.");
+                    session.status = "IDLE";
+            }
         }
 
-        switch (session.step) {
-            case 'START': showMainMenu(); break;
+        // --- HANDLERS DE FLUXO ---
 
-            case 'MENU_PRINCIPAL':
-                if (msg === '3') {
-                    session.step = 'BOAS_VINDAS_TESTE';
-                    addLog(`Iniciando triagem de teste gratuito.`);
-                    botReply(`Que excelente escolha! Fico feliz pelo seu interesse. 🚀\n\nPara que sua experiência seja perfeita, você pode verificar os **Dispositivos e Apps compatíveis** acessando nosso guia completo aqui:\n📖 https://pandda.vip/guia\n\nLá você encontra o passo a passo para deixar tudo pronto. ✨\n\n*Apenas um detalhe importante: seu teste de 2 horas começa a contar a partir do momento em que enviarmos seus dados de acesso.*\n\nComo deseja prosseguir?\n\n1️⃣ Possuo um código de indicação\n2️⃣ Não possuo código / Continuar agora\n0️⃣ Voltar ao menu principal`);
-                } 
-                else if (msg === '1') botReply("Com o sistema **DualAPP**, você tem a liberdade de alternar entre 2 aplicativos de alta performance. É entretenimento sem interrupções! 🐼\n\nDigite **0** para voltar.");
-                else if (msg === '2') botReply("Nossos planos começam em **R$ 34,90** no plano DualAPP (1 tela). É simples, justo e sem fidelidade! 💳\n\nDigite **0** para voltar.");
-                break;
-
-            case 'BOAS_VINDAS_TESTE':
-                if (msg === '1') {
-                    session.step = 'COLETA_INDICACAO';
-                    addLog(`Usuário optou por usar código de indicação.`);
-                    botReply(`Com certeza! Por gentileza, informe o seu **Código de Indicação**:`);
-                } else if (msg === '2') {
-                    session.indicacao = 'Nenhuma';
-                    session.step = 'ESCOLHA_TESTE';
-                    addLog(`Usuário continuará sem código.`);
-                    botReply(`Tudo bem! Vamos dar continuidade.\n\nQual o melhor momento para você receber seu teste?\n\n1️⃣ Gostaria de receber AGORA (Atendimento até as 18h)\n2️⃣ Gostaria de AGENDAR um horário\n0️⃣ Voltar`);
-                } else {
-                    botReply("Perdão, não entendi. Escolha **1** se tiver um código ou **2** para continuar sem. 😊");
-                }
-                break;
-
-            case 'COLETA_INDICACAO':
-                addLog(`Consultando código "${input.toUpperCase()}" no banco de dados...`);
-                const codigos = ["PANDDA10", "VIP"];
-                if (codigos.includes(input.toUpperCase())) {
-                    session.indicacao = input.toUpperCase();
-                    addLog(`Código validado com sucesso!`);
-                    botReply(`✅ **Código validado com sucesso!**\nComo cortesia, seu teste terá uma duração especial de **6 horas**. 🎁\n\nQuando prefere receber os dados?\n1️⃣ Agora mesmo\n2️⃣ Agendar horário`);
-                    session.step = 'ESCOLHA_TESTE';
-                } else {
-                    addLog(`Código inválido ou inexistente.`);
-                    botReply(`❌ Sinto muito, mas não localizei este código.\n\nPor favor, verifique se digitou corretamente ou escolha a opção **2** para continuar sem o código (estamos à disposição da mesma forma!).`);
-                }
-                break;
-
-            case 'ESCOLHA_TESTE':
-                if (msg === '1') {
-                    const h = new Date().getHours();
-                    if (h >= 9 && h < 18) {
-                        session.horario = "Imediato"; session.step = 'COLETA_NOME';
-                        addLog(`Solicitação de teste imediato dentro do horário.`);
-                        botReply(`Perfeito! Para que eu possa te cadastrar, qual o seu **primeiro nome**?`);
-                    } else {
-                        addLog(`Solicitação imediata fora do horário comercial.`);
-                        botReply(`No momento, nossa equipe de suporte está em intervalo (atendemos das 09h às 18h). 😊\n\nPara sua comodidade, você pode escolher a opção **2** para agendar para amanhã ou digitar **0** para voltarmos ao menu.`);
-                    }
-                } else if (msg === '2') {
-                    session.step = 'COLETA_HORARIO';
-                    addLog(`Iniciando fluxo de agendamento.`);
-                    botReply(`Com prazer! Em qual horário (entre 9 e 18) você gostaria de receber seu acesso?\n\n*(Por gentileza, digite apenas o número da hora, ex: 14)*`);
-                }
-                break;
-
-            case 'COLETA_HORARIO':
-                const hSol = parseInt(msg);
-                if (!isNaN(hSol) && hSol >= 9 && hSol <= 18) {
-                    session.horario = hSol + ":00h"; session.step = 'COLETA_NOME';
-                    addLog(`Horário ${session.horario} agendado.`);
-                    botReply(`Agendado com sucesso para às **${session.horario}**! ✅\n\nPara finalizar, qual o seu **primeiro nome**?`);
-                } else { 
-                    botReply(`⚠️ Para que o agendamento funcione, por favor digite um número entre **9** e **18**.`);
-                }
-                break;
-
-            case 'COLETA_NOME':
-                session.name = input; session.step = 'COLETA_EMAIL';
-                addLog(`Nome coletado: ${session.name}`);
-                botReply(`Muito prazer, ${session.name}! Por fim, poderia me informar o seu melhor **e-mail**?`);
-                break;
-
-            case 'COLETA_EMAIL':
-                if(msg.includes('@')) {
-                    session.email = input; session.step = 'CONFIRMACAO';
-                    addLog(`E-mail coletado: ${session.email}`);
-                    botReply(`**Tudo pronto! Vamos conferir seus dados?** 🐼\n\n📍 Início: ${session.horario}\n👤 Nome: ${session.name}\n📧 E-mail: ${session.email}\n🎟️ Indicação: ${session.indicacao}\n\n1️⃣ Os dados estão corretos!\n2️⃣ Gostaria de alterar algo`);
-                } else {
-                    botReply("Poderia conferir o e-mail? Parece que falta o '@'. 😊");
-                }
-                break;
-
-            case 'CONFIRMACAO':
-                if (msg === '1') {
-                    addLog(`DISPARO: Enviando notificação para o Discord e gravando no Supabase.`);
-                    botReply(`**Solicitação enviada com sucesso!** 🎉\n\nMuito obrigado pela confiança. Em breve você receberá todas as instruções no seu WhatsApp e e-mail. Tenha um excelente entretenimento!\n\nDigite **0** se precisar de mais alguma coisa.`);
-                    session.step = 'START';
-                } else {
-                    session.step = 'BOAS_VINDAS_TESTE';
-                    addLog(`Usuário solicitou correção de dados.`);
-                    botReply("Sem problemas, vamos ajustar! Deseja informar um código de indicação?");
-                }
-                break;
+        function handleMenu(input) {
+            switch (input) {
+                case "1": // Como funciona
+                    botReply(`*Como funciona o Plano DualAPP*\n\nÉ simples! Instale o APP adequado clicando no nosso guia completo: ${CONFIG.links.guide}\n\n✅ Compatível com Smart TVs, TV Box, Celulares.\n✅ Funciona via Internet.\n✅ Validade de 30 dias.\n✅ Possibilidade de telas adicionais.`);
+                    setTimeout(() => sendMainMenu(), 2000); // Reenvia menu após leitura
+                    break;
+                case "2": // Planos
+                    botReply(`*Nossos Planos*\n\n📺 *Plano DualAPP Base* (1 Tela): R$ ${CONFIG.prices.base.toFixed(2)}\n📺 *Tela Adicional*: + R$ ${CONFIG.prices.extra.toFixed(2)} cada\n\nQualidade máxima e acesso a 2 APPs para maior disponibilidade!`);
+                    setTimeout(() => sendMainMenu(), 2000);
+                    break;
+                case "3": // Assine
+                    startBuyFlow();
+                    break;
+                case "4": // Teste
+                    startTestFlow();
+                    break;
+                case "5": // Dúvidas
+                    botReply(`*Dúvidas Frequentes*\n\n🔸 *Posso assistir em mais de um aparelho?*\nSim, se contratar telas adicionais. O plano base é para 1 reprodução simultânea.\n\n🔸 *Posso assistir no celular?*\nSim! Basta baixar o app no nosso guia.\n\n🔸 *Precisa de antena?*\nNão, apenas internet.`);
+                    setTimeout(() => sendMainMenu(), 3000);
+                    break;
+                case "6": // Falar com atendente
+                    botReply("Um atendente humano foi notificado e entrará em contato em breve.");
+                    addLog("DISCORD", "🔔 ALERTA: Solicitação de atendimento humano.");
+                    break;
+                default:
+                    botReply("Opção inválida. Por favor, escolha um número do menu.");
+                    break;
+            }
         }
-    }
 
-    function sendMessage() {
-        const i = document.getElementById('userInput');
-        if (i.value.trim() === "") return;
-        const d = document.createElement('div'); d.className = 'msg user'; d.innerText = i.value;
-        document.getElementById('messages').appendChild(d);
-        handleUserInput(i.value); i.value = "";
-        document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-    }
+        // --- FLUXO DE COMPRA ---
+        function startBuyFlow() {
+            session.status = "BUY_FLOW";
+            session.step = 1;
+            session.temp_data = {};
+            updateSupabaseView();
+            botReply(`*Assinatura DualAPP* 🚀\n\nNosso plano custa R$${CONFIG.prices.base.toFixed(2)} (1 tela) com validade de 1 mês.\nTelas adicionais: R$${CONFIG.prices.extra.toFixed(2)} cada.\n\n1️⃣ Quero assinar o Plano Base\n2️⃣ Quero adicionar mais telas`);
+        }
 
-    function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
-    botReply("Seja bem-vindo à Pandda! Como posso te ajudar? (Digite qualquer coisa para começar)");
-</script>
+        function handleBuyFlow(input) {
+            // Passo 1: Escolha do tipo
+            if (session.step === 1) {
+                if (input === "1") {
+                    generateCheckout(1);
+                } else if (input === "2") {
+                    session.step = 2;
+                    botReply("Quantas telas gostaria no total?\n\nDigite *2* ou *3* (Máximo atual)\nDigite *0* para voltar.");
+                } else {
+                    botReply("Opção inválida. Digite 1 ou 2.");
+                }
+                updateSupabaseView();
+                return;
+            }
+
+            // Passo 2: Quantidade de telas
+            if (session.step === 2) {
+                if (input === "0") {
+                    startBuyFlow();
+                    return;
+                }
+                if (["2", "3"].includes(input)) {
+                    // Mostrar resumo de valores
+                    const qtd = parseInt(input);
+                    let total = CONFIG.prices.base + (CONFIG.prices.extra * (qtd - 1));
+                    botReply(`Calculando para ${qtd} telas...\nTotal: R$ ${total.toFixed(2)}`);
+                    setTimeout(() => generateCheckout(qtd), 1000);
+                } else {
+                    botReply("Por favor, digite 2 ou 3.");
+                }
+            }
+        }
+
+        function generateCheckout(screens) {
+            const code = Math.random().toString(36).substring(7).toUpperCase();
+            const link = `${CONFIG.links.payment}${code}`;
+            const total = CONFIG.prices.base + (CONFIG.prices.extra * (screens - 1));
+            
+            botReply(`Falta pouco! 🐼\n\nFaça o pagamento clicando no link seguro:\n🔗 ${link}\n\nAssim que aprovado, você receberá seus dados aqui.`);
+            
+            // Simular DB e Log
+            addLog("SUPABASE", `INSERT INTO payments (code, user, amount, screens) VALUES ('${code}', '${session.phone}', ${total}, ${screens})`);
+            addLog("MERCADOPAGO", `Gerando preferência de R$${total.toFixed(2)} para URL ${link}`);
+            
+            // Resetar para menu após um tempo ou manter sessão aberta aguardando webhook
+            session.status = "IDLE"; 
+            session.temp_data = { awaiting_payment: code };
+            updateSupabaseView();
+        }
+
+        // --- FLUXO DE TESTE ---
+        function startTestFlow() {
+            session.status = "TEST_FLOW";
+            session.temp_data = {};
+            botReply("Para testar é simples! Instale 2 apps do nosso guia: pandda.vip/guia\n\nO teste dura 6h (contadas a partir do envio do login).");
+            
+            setTimeout(() => {
+                const hour = parseInt(document.getElementById('simulatedHour').value);
+                
+                // Verifica horário comercial
+                if (hour >= CONFIG.hours.open && hour < CONFIG.hours.close) {
+                    session.step = 1; // Modo escolha
+                    botReply("1️⃣ Iniciar teste o mais breve possível\n2️⃣ Agendar para outro horário");
+                } else {
+                    session.step = 2; // Força agendamento
+                    botReply(`Estamos fora do horário de envio imediato (09h às 20h).\nVamos agendar seu teste!`);
+                    askReferral();
+                }
+                updateSupabaseView();
+            }, 1000);
+        }
+
+        function handleTestFlow(input, currentHour) {
+            // Passo 1: Escolha Imediato vs Agendado (Só aparece se estiver no horário)
+            if (session.step === 1) {
+                if (input === "1") {
+                    session.temp_data.mode = "NOW";
+                    askReferral();
+                } else if (input === "2") {
+                    session.temp_data.mode = "SCHEDULE";
+                    askReferral();
+                } else {
+                    botReply("Digite 1 ou 2.");
+                }
+                return;
+            }
+
+            // Passo 2: Código de Indicação (Lógica compartilhada)
+            if (session.step === 2) {
+                // Validação simples de código
+                if (input.length > 3) {
+                    session.temp_data.referral = input;
+                    session.temp_data.duration = "24h";
+                    botReply("✅ Código válido! Seu teste será de 24h e seu indicador ganha desconto.");
+                } else {
+                    session.temp_data.referral = null;
+                    session.temp_data.duration = "6h";
+                    botReply("Sem código ou código curto. Seu teste será de 6h.");
+                }
+                
+                // Decide próximo passo basead no modo
+                if (session.temp_data.mode === "NOW" || (currentHour >= CONFIG.hours.open && currentHour < CONFIG.hours.close && session.temp_data.mode !== "SCHEDULE")) {
+                    // Se for AGORA
+                    session.temp_data.schedule_time = "Imediato";
+                    session.step = 4; // Pula agendamento
+                    botReply("Qual seu nome para gerarmos o teste?");
+                } else {
+                    // Vai para agendamento
+                    session.step = 3;
+                    showAvailableHours(currentHour);
+                }
+                updateSupabaseView();
+                return;
+            }
+
+            // Passo 3: Selecionar Horário
+            if (session.step === 3) {
+                const chosen = parseInt(input);
+                if (chosen > currentHour && chosen <= CONFIG.hours.close && chosen >= CONFIG.hours.open) {
+                    session.temp_data.schedule_time = chosen + ":00";
+                    session.step = 4;
+                    botReply(`Agendado para ${session.temp_data.schedule_time}. Qual seu nome?`);
+                } else {
+                    botReply("Horário inválido. Escolha uma das opções da lista acima.");
+                }
+                updateSupabaseView();
+                return;
+            }
+
+            // Passo 4: Nome
+            if (session.step === 4) {
+                session.temp_data.name = input;
+                session.step = 5;
+                
+                let resumo = `📋 *Resumo da Solicitação*\n\n👤 Nome: ${session.temp_data.name}\n🕒 Início: ${session.temp_data.schedule_time || "Imediato"}\n⏳ Duração: ${session.temp_data.duration}\n🎟 Código: ${session.temp_data.referral || "Nenhum"}`;
+                
+                botReply(resumo);
+                setTimeout(() => botReply("Os dados estão corretos?\n1️⃣ Sim, confirmar\n2️⃣ Não, alterar Nome"), 500);
+                updateSupabaseView();
+                return;
+            }
+
+            // Passo 5: Confirmação
+            if (session.step === 5) {
+                if (input === "1") {
+                    botReply("✅ Solicitação enviada! Aguarde, em breve você receberá os dados de acesso.");
+                    
+                    // Disparo Discord
+                    const discordPayload = {
+                        title: "🚀 Nova Solicitação de Teste",
+                        fields: [
+                            { name: "Cliente", value: session.temp_data.name },
+                            { name: "Horário", value: session.temp_data.schedule_time },
+                            { name: "Indicação", value: session.temp_data.referral || "N/A" }
+                        ]
+                    };
+                    addLog("DISCORD", JSON.stringify(discordPayload, null, 2));
+                    
+                    session.status = "IDLE";
+                } else if (input === "2") {
+                    session.step = 4;
+                    botReply("Ok, digite seu nome novamente:");
+                }
+                updateSupabaseView();
+                return;
+            }
+        }
+
+        // --- FUNÇÕES AUXILIARES ---
+
+        function sendGreeting(hour) {
+            let greeting = "Boa noite";
+            if (hour >= 5 && hour < 12) greeting = "Bom dia";
+            else if (hour >= 12 && hour < 18) greeting = "Boa tarde";
+
+            botReply(`🐼 ${greeting}! Bem-vindo ao *Pandda IPTV*.\nEu sou seu assistente virtual.`);
+            setTimeout(() => sendMainMenu(), 800);
+        }
+
+        function sendMainMenu() {
+            botReply(`Escolha uma opção:\n\n1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assine\n4️⃣ Teste Gratuito\n5️⃣ Dúvidas Frequentes\n6️⃣ Falar com atendente`);
+        }
+
+        function askReferral() {
+            session.step = 2; // Estado de esperar código
+            botReply("Você possui algum código de indicação? (Digite o código ou 'não')");
+            updateSupabaseView();
+        }
+
+        function showAvailableHours(currentHour) {
+            let options = [];
+            // Lógica: Se for antes das 9, começa do 9. Se for depois, começa da hora atual + 1
+            let start = currentHour < 9 ? 9 : currentHour + 1;
+            
+            for (let h = start; h <= 20; h++) {
+                options.push(`${h}h`);
+            }
+            
+            if (options.length === 0) {
+                botReply("Não há mais horários disponíveis hoje. Tente amanhã.");
+                session.status = "IDLE";
+            } else {
+                botReply(`Horários disponíveis para hoje:\n${options.join(", ")}\n\nDigite apenas o número (ex: 16)`);
+            }
+        }
+
+        // --- FUNÇÕES DE UI ---
+
+        function sendMessage() {
+            const input = document.getElementById('userInput');
+            const text = input.value;
+            if (!text) return;
+
+            // Renderiza msg do usuário
+            const chatBox = document.getElementById('chatBox');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message-out text-white';
+            msgDiv.innerText = text;
+            chatBox.appendChild(msgDiv);
+            
+            input.value = '';
+            chatBox.scrollTop = chatBox.scrollHeight;
+
+            // Processa lógica
+            setTimeout(() => processBotLogic(text), 500);
+        }
+
+        function botReply(text) {
+            const chatBox = document.getElementById('chatBox');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message-in text-white';
+            // Converte quebras de linha e negrito simples
+            msgDiv.innerHTML = text.replace(/\n/g, '<br>').replace(/\*(.*?)\*/g, '<b>$1</b>');
+            chatBox.appendChild(msgDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function updateSupabaseView() {
+            const view = document.getElementById('supabaseView');
+            view.innerText = JSON.stringify(session, null, 4);
+        }
+
+        function addLog(type, message) {
+            const view = document.getElementById('logsView');
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = `[${timestamp}] [${type}] ${message}\n----------------------------------\n`;
+            view.innerText = logEntry + view.innerText;
+        }
+
+        function resetSystem() {
+            session = { phone: "5511999999999", status: "IDLE", step: 0, last_interaction: new Date(), temp_data: {} };
+            document.getElementById('chatBox').innerHTML = '';
+            document.getElementById('logsView').innerText = '// Logs resetados...';
+            updateSupabaseView();
+            botReply("Sistema reiniciado. Digite algo para começar.");
+        }
+
+        // Inicialização
+        updateSupabaseView();
+        botReply("Sistema Inicializado. Digite 'oi' para começar.");
+
+    </script>
 </body>
 </html>
