@@ -2,68 +2,79 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandda Bot - Simulador (Versão Atualizada)</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pandda Bot - Simulador Responsivo</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background-color: #111b21; color: #e9edef; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        /* Ajustes globais para evitar scroll na página inteira (app-like feel) */
+        body { background-color: #111b21; color: #e9edef; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; overflow: hidden; }
+        
         .chat-bg { background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); background-repeat: repeat; opacity: 0.1; position: absolute; top:0; left:0; right:0; bottom:0; z-index: 0; }
-        .message-in { background-color: #202c33; border-radius: 0 10px 10px 10px; padding: 8px 10px; margin-bottom: 10px; max-width: 80%; position: relative; z-index: 10; font-size: 14px; }
-        .message-out { background-color: #005c4b; border-radius: 10px 0 10px 10px; padding: 8px 10px; margin-bottom: 10px; max-width: 80%; margin-left: auto; position: relative; z-index: 10; font-size: 14px; }
-        .json-view { font-family: 'Courier New', Courier, monospace; font-size: 12px; }
-        ::-webkit-scrollbar { width: 8px; }
+        
+        .message-in { background-color: #202c33; border-radius: 0 10px 10px 10px; padding: 8px 10px; margin-bottom: 10px; max-width: 85%; position: relative; z-index: 10; font-size: 14px; word-wrap: break-word; }
+        .message-out { background-color: #005c4b; border-radius: 10px 0 10px 10px; padding: 8px 10px; margin-bottom: 10px; max-width: 85%; margin-left: auto; position: relative; z-index: 10; font-size: 14px; word-wrap: break-word; }
+        
+        .json-view { font-family: 'Courier New', Courier, monospace; font-size: 11px; line-height: 1.4; }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #111b21; }
         ::-webkit-scrollbar-thumb { background: #374045; border-radius: 4px; }
     </style>
 </head>
-<body class="h-screen flex flex-col md:flex-row overflow-hidden">
+<body class="h-screen w-screen flex flex-col md:flex-row">
 
-    <div class="w-full md:w-1/3 flex flex-col border-r border-gray-700 relative bg-[#0b141a]">
+    <div class="flex-1 md:w-1/3 flex flex-col border-r border-gray-700 relative bg-[#0b141a] min-h-0">
         <div class="chat-bg pointer-events-none"></div>
         
-        <div class="bg-[#202c33] p-3 flex items-center justify-between z-20 shadow-md">
+        <div class="bg-[#202c33] p-3 flex items-center justify-between z-20 shadow-md shrink-0">
             <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold">P</div>
-                <div>
-                    <h3 class="font-semibold text-gray-100">Pandda Bot</h3>
+                <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold shrink-0">P</div>
+                <div class="overflow-hidden">
+                    <h3 class="font-semibold text-gray-100 truncate">Pandda Bot</h3>
                     <p class="text-xs text-gray-400">Online via Termux</p>
                 </div>
             </div>
-            <div class="flex flex-col items-end">
+            <div class="flex flex-col items-end shrink-0">
                 <label class="text-[10px] text-gray-400">Hora Simulada:</label>
-                <input type="number" id="simulatedHour" class="bg-gray-700 text-white text-xs p-1 rounded w-16 text-center" min="0" max="23" value="10">
+                <input type="number" id="simulatedHour" class="bg-gray-700 text-white text-xs p-1 rounded w-14 text-center" min="0" max="23" value="10">
             </div>
         </div>
 
-        <div id="chatBox" class="flex-1 overflow-y-auto p-4 z-10 flex flex-col">
+        <div id="chatBox" class="flex-1 overflow-y-auto p-4 z-10 flex flex-col scroll-smooth">
             </div>
 
-        <div class="bg-[#202c33] p-3 flex gap-2 z-20">
-            <input type="text" id="userInput" class="flex-1 bg-[#2a3942] rounded-lg px-4 py-2 text-white outline-none focus:ring-1 focus:ring-green-500" placeholder="Digite uma mensagem..." onkeypress="if(event.key === 'Enter') sendMessage()">
-            <button onclick="sendMessage()" class="bg-[#00a884] w-10 h-10 rounded-full flex items-center justify-center hover:bg-[#008f6f] transition"><i class="fas fa-paper-plane"></i></button>
+        <div class="bg-[#202c33] p-2 md:p-3 flex gap-2 z-20 shrink-0 pb-safe"> <input type="text" id="userInput" class="flex-1 bg-[#2a3942] rounded-lg px-4 py-3 text-white outline-none focus:ring-1 focus:ring-green-500 text-sm md:text-base" placeholder="Digite uma mensagem..." onkeypress="if(event.key === 'Enter') sendMessage()">
+            <button onclick="sendMessage()" class="bg-[#00a884] w-12 h-12 md:w-10 md:h-10 rounded-full flex items-center justify-center hover:bg-[#008f6f] transition shrink-0"><i class="fas fa-paper-plane"></i></button>
         </div>
     </div>
 
-    <div class="w-full md:w-2/3 bg-[#0b141a] flex flex-col p-4 gap-4 overflow-hidden">
+    <div class="md:w-2/3 bg-[#0b141a] flex flex-col border-t md:border-t-0 md:border-l border-gray-700 transition-all duration-300 ease-in-out shrink-0" id="dashboardPanel">
         
-        <div class="flex justify-between items-center">
-            <h2 class="text-xl font-bold text-green-400"><i class="fas fa-server mr-2"></i>Dashboard do Sistema</h2>
-            <button onclick="resetSystem()" class="text-xs bg-red-600 px-3 py-1 rounded hover:bg-red-700">Reiniciar Sessão</button>
+        <div onclick="toggleDashboard()" class="p-3 bg-[#1f2937] flex justify-between items-center cursor-pointer md:cursor-default border-b border-gray-700 md:border-none shrink-0">
+            <h2 class="text-sm md:text-xl font-bold text-green-400 flex items-center">
+                <i class="fas fa-server mr-2"></i>Dashboard
+                <span class="text-[10px] text-gray-400 font-normal ml-2 md:hidden">(Toque para ver logs)</span>
+            </h2>
+            <div class="flex gap-3 items-center">
+                <button onclick="resetSystem(); event.stopPropagation();" class="text-[10px] bg-red-600 px-2 py-1 rounded hover:bg-red-700 whitespace-nowrap">Reiniciar</button>
+                <i id="toggleIcon" class="fas fa-chevron-up md:hidden text-gray-400 transition-transform"></i>
+            </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 h-full overflow-hidden">
+        <div id="dashboardContent" class="hidden md:flex flex-col md:grid md:grid-cols-2 gap-4 p-4 h-64 md:h-full overflow-y-auto bg-[#0b141a]">
             
-            <div class="bg-[#1f2937] rounded-lg p-4 flex flex-col border border-gray-700 shadow-lg">
-                <h3 class="text-blue-400 font-bold mb-2 text-sm uppercase"><i class="fas fa-database mr-2"></i>Supabase (Tabela: Sessions)</h3>
-                <div class="flex-1 bg-black rounded p-3 overflow-y-auto json-view text-green-300" id="supabaseView">
+            <div class="bg-[#1f2937] rounded-lg p-3 flex flex-col border border-gray-700 shadow-lg h-48 md:h-auto">
+                <h3 class="text-blue-400 font-bold mb-2 text-xs uppercase"><i class="fas fa-database mr-2"></i>Supabase (Sessão)</h3>
+                <div class="flex-1 bg-black rounded p-2 overflow-y-auto json-view text-green-300" id="supabaseView">
                     // Aguardando interação...
                 </div>
             </div>
 
-            <div class="bg-[#1f2937] rounded-lg p-4 flex flex-col border border-gray-700 shadow-lg">
-                <h3 class="text-indigo-400 font-bold mb-2 text-sm uppercase"><i class="fab fa-discord mr-2"></i>Logs & Webhooks</h3>
-                <div class="flex-1 bg-black rounded p-3 overflow-y-auto json-view text-gray-300" id="logsView">
+            <div class="bg-[#1f2937] rounded-lg p-3 flex flex-col border border-gray-700 shadow-lg h-48 md:h-auto">
+                <h3 class="text-indigo-400 font-bold mb-2 text-xs uppercase"><i class="fab fa-discord mr-2"></i>Logs & Webhooks</h3>
+                <div class="flex-1 bg-black rounded p-2 overflow-y-auto json-view text-gray-300" id="logsView">
                     // Logs de sistema...
                 </div>
             </div>
@@ -71,7 +82,29 @@
     </div>
 
     <script>
-        // --- CONFIGURAÇÃO DO SISTEMA ---
+        // --- FUNÇÃO DE RESPONSIVIDADE (NOVA) ---
+        function toggleDashboard() {
+            // Verifica se está em modo mobile (baseado na classe 'md:flex' ou largura da tela)
+            if (window.innerWidth >= 768) return; // Não faz nada no desktop
+
+            const content = document.getElementById('dashboardContent');
+            const icon = document.getElementById('toggleIcon');
+            
+            if (content.classList.contains('hidden')) {
+                // Abrir
+                content.classList.remove('hidden');
+                content.classList.add('flex');
+                icon.classList.add('rotate-180');
+            } else {
+                // Fechar
+                content.classList.add('hidden');
+                content.classList.remove('flex');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        // --- CÓDIGO LÓGICO ORIGINAL (SEM ALTERAÇÕES) ---
+
         const CONFIG = {
             prices: { base: 34.90, extra: 17.90 },
             hours: { open: 9, close: 20 },
@@ -83,29 +116,21 @@
             }
         };
 
-        // --- ESTADO INICIAL (Sessão do Usuário) ---
         let session = {
             phone: "5511999999999",
             status: "IDLE", // IDLE, MENU, TEST_FLOW, BUY_FLOW
             step: 0,
             last_interaction: new Date(),
-            temp_data: {} // Armazena dados temporários (nome, horário agendado, telas)
+            temp_data: {} 
         };
-
-        // --- LÓGICA DO BOT ---
 
         function processBotLogic(input) {
             const hour = parseInt(document.getElementById('simulatedHour').value);
             const cleanInput = input.trim();
-            
-            // Log de entrada
             addLog("INPUT", `Usuário enviou: "${cleanInput}"`);
-
-            // Atualiza timestamp
             session.last_interaction = new Date();
             updateSupabaseView();
 
-            // 1. Verifica estado IDLE ou Resposta Genérica
             if (session.status === "IDLE") {
                 sendGreeting(hour);
                 session.status = "MENU";
@@ -114,56 +139,40 @@
                 return;
             }
 
-            // 2. Roteamento baseado no Status
             switch (session.status) {
-                case "MENU":
-                    handleMenu(cleanInput);
-                    break;
-                case "TEST_FLOW":
-                    handleTestFlow(cleanInput, hour);
-                    break;
-                case "BUY_FLOW":
-                    handleBuyFlow(cleanInput);
-                    break;
+                case "MENU": handleMenu(cleanInput); break;
+                case "TEST_FLOW": handleTestFlow(cleanInput, hour); break;
+                case "BUY_FLOW": handleBuyFlow(cleanInput); break;
                 default:
                     botReply("Erro de estado. Digite 'oi' para reiniciar.");
                     session.status = "IDLE";
             }
         }
 
-        // --- HANDLERS DE FLUXO ---
-
         function handleMenu(input) {
             switch (input) {
-                case "1": // Como funciona
+                case "1": 
                     botReply(`*Como funciona o Plano DualAPP*\n\nÉ simples! Instale o APP adequado clicando no nosso guia completo: ${CONFIG.links.guide}\n\n✅ Compatível com Smart TVs, TV Box, Celulares.\n✅ Funciona via Internet.\n✅ Validade de 30 dias.\n✅ Possibilidade de telas adicionais.`);
                     setTimeout(() => sendMainMenu(), 2000); 
                     break;
-                case "2": // Planos
+                case "2": 
                     botReply(`*Nossos Planos*\n\n📺 *Plano DualAPP Base* (1 Tela): R$ ${CONFIG.prices.base.toFixed(2)}\n📺 *Tela Adicional*: + R$ ${CONFIG.prices.extra.toFixed(2)} cada\n\nQualidade máxima e acesso a 2 APPs para maior disponibilidade!`);
                     setTimeout(() => sendMainMenu(), 2000);
                     break;
-                case "3": // Assine
-                    startBuyFlow();
-                    break;
-                case "4": // Teste
-                    startTestFlow();
-                    break;
-                case "5": // Dúvidas (ATUALIZADO)
+                case "3": startBuyFlow(); break;
+                case "4": startTestFlow(); break;
+                case "5": 
                     botReply(`*Dúvidas Frequentes*\n\n🔸 *Posso assistir em mais de um aparelho?*\nSim, se contratar telas adicionais. O plano base é para 1 reprodução simultânea.\n\n🔸 *Posso assistir no celular?*\nSim! Basta baixar o app no nosso guia.\n\n🔸 *Quais conteúdos estão disponíveis?*\nConteúdo completo: Canais ao vivo, Filmes, Séries, Novelas e Doramas. Solicite um teste e verifique nossa lista atualizada.\n\n🔗 Para mais dúvidas acesse: ${CONFIG.links.faq}`);
                     setTimeout(() => sendMainMenu(), 4000);
                     break;
-                case "6": // Falar com atendente
+                case "6": 
                     botReply("Um atendente humano foi notificado e entrará em contato em breve.");
                     addLog("DISCORD", "🔔 ALERTA: Solicitação de atendimento humano.");
                     break;
-                default:
-                    botReply("Opção inválida. Por favor, escolha um número do menu.");
-                    break;
+                default: botReply("Opção inválida. Por favor, escolha um número do menu."); break;
             }
         }
 
-        // --- FLUXO DE COMPRA ---
         function startBuyFlow() {
             session.status = "BUY_FLOW";
             session.step = 1;
@@ -173,34 +182,23 @@
         }
 
         function handleBuyFlow(input) {
-            // Passo 1: Escolha do tipo
             if (session.step === 1) {
-                if (input === "1") {
-                    generateCheckout(1);
-                } else if (input === "2") {
+                if (input === "1") { generateCheckout(1); } 
+                else if (input === "2") {
                     session.step = 2;
                     botReply("Quantas telas gostaria no total?\n\nDigite *2* ou *3* (Máximo atual)\nDigite *0* para voltar.");
-                } else {
-                    botReply("Opção inválida. Digite 1 ou 2.");
-                }
+                } else { botReply("Opção inválida. Digite 1 ou 2."); }
                 updateSupabaseView();
                 return;
             }
-
-            // Passo 2: Quantidade de telas
             if (session.step === 2) {
-                if (input === "0") {
-                    startBuyFlow();
-                    return;
-                }
+                if (input === "0") { startBuyFlow(); return; }
                 if (["2", "3"].includes(input)) {
                     const qtd = parseInt(input);
                     let total = CONFIG.prices.base + (CONFIG.prices.extra * (qtd - 1));
                     botReply(`Calculando para ${qtd} telas...\nTotal: R$ ${total.toFixed(2)}`);
                     setTimeout(() => generateCheckout(qtd), 1000);
-                } else {
-                    botReply("Por favor, digite 2 ou 3.");
-                }
+                } else { botReply("Por favor, digite 2 ou 3."); }
             }
         }
 
@@ -208,32 +206,25 @@
             const code = Math.random().toString(36).substring(7).toUpperCase();
             const link = `${CONFIG.links.payment}${code}`;
             const total = CONFIG.prices.base + (CONFIG.prices.extra * (screens - 1));
-            
             botReply(`Falta pouco! 🐼\n\nFaça o pagamento clicando no link seguro:\n🔗 ${link}\n\nAssim que aprovado, você receberá seus dados aqui.`);
-            
             addLog("SUPABASE", `INSERT INTO payments (code, user, amount, screens) VALUES ('${code}', '${session.phone}', ${total}, ${screens})`);
             addLog("MERCADOPAGO", `Gerando preferência de R$${total.toFixed(2)} para URL ${link}`);
-            
             session.status = "IDLE"; 
             session.temp_data = { awaiting_payment: code };
             updateSupabaseView();
         }
 
-        // --- FLUXO DE TESTE (ATUALIZADO) ---
         function startTestFlow() {
             session.status = "TEST_FLOW";
             session.temp_data = {};
             botReply("Para testar é simples! Instale 2 apps do nosso guia: pandda.vip/guia\n\nO teste dura 6h (contadas a partir do envio do login).");
-            
             setTimeout(() => {
                 const hour = parseInt(document.getElementById('simulatedHour').value);
-                
-                // Verifica horário comercial
                 if (hour >= CONFIG.hours.open && hour < CONFIG.hours.close) {
-                    session.step = 1; // Modo escolha
+                    session.step = 1; 
                     botReply("1️⃣ Iniciar teste o mais breve possível\n2️⃣ Agendar para outro horário");
                 } else {
-                    session.step = 2; // Força agendamento
+                    session.step = 2; 
                     session.temp_data.mode = "SCHEDULE";
                     botReply(`Estamos fora do horário de envio imediato (09h às 20h).\nVamos agendar seu teste!`);
                     askReferral();
@@ -243,11 +234,9 @@
         }
 
         function handleTestFlow(input, currentHour) {
-            
-            // --- EDIÇÃO DE DADOS (Sub-steps) ---
             if (session.step === 'EDIT_NAME') {
                 session.temp_data.name = input;
-                sendTestSummary(); // Volta ao resumo
+                sendTestSummary(); 
                 return;
             }
             if (session.step === 'EDIT_REF') {
@@ -268,15 +257,10 @@
                 if (chosen > currentHour && chosen <= CONFIG.hours.close && chosen >= CONFIG.hours.open) {
                     session.temp_data.schedule_time = chosen + ":00";
                     sendTestSummary();
-                } else {
-                    botReply("Horário inválido. Digite um horário válido da lista anterior.");
-                }
+                } else { botReply("Horário inválido. Digite um horário válido da lista anterior."); }
                 return;
             }
 
-            // --- FLUXO NORMAL ---
-
-            // Passo 1: Escolha Imediato vs Agendado
             if (session.step === 1) {
                 if (input === "1") {
                     session.temp_data.mode = "NOW";
@@ -284,13 +268,10 @@
                 } else if (input === "2") {
                     session.temp_data.mode = "SCHEDULE";
                     askReferral();
-                } else {
-                    botReply("Digite 1 ou 2.");
-                }
+                } else { botReply("Digite 1 ou 2."); }
                 return;
             }
 
-            // Passo 2: Código de Indicação
             if (session.step === 2) {
                 if (input.length > 3 && input.toLowerCase() !== 'não' && input.toLowerCase() !== 'nao') {
                     session.temp_data.referral = input;
@@ -301,10 +282,9 @@
                     session.temp_data.duration = "6h";
                     botReply("Sem código ou código curto. Seu teste será de 6h.");
                 }
-                
                 if (session.temp_data.mode === "NOW") {
                     session.temp_data.schedule_time = "Imediato";
-                    session.step = 4; // Pula agendamento
+                    session.step = 4; 
                     botReply("Qual seu nome para gerarmos o teste?");
                 } else {
                     session.step = 3;
@@ -314,32 +294,26 @@
                 return;
             }
 
-            // Passo 3: Selecionar Horário
             if (session.step === 3) {
                 const chosen = parseInt(input);
                 if (chosen > currentHour && chosen <= CONFIG.hours.close && chosen >= CONFIG.hours.open) {
                     session.temp_data.schedule_time = chosen + ":00";
                     session.step = 4;
                     botReply(`Agendado para ${session.temp_data.schedule_time}. Qual seu nome?`);
-                } else {
-                    botReply("Horário inválido. Escolha uma das opções da lista acima.");
-                }
+                } else { botReply("Horário inválido. Escolha uma das opções da lista acima."); }
                 updateSupabaseView();
                 return;
             }
 
-            // Passo 4: Nome
             if (session.step === 4) {
                 session.temp_data.name = input;
                 sendTestSummary();
                 return;
             }
 
-            // Passo 5: Confirmação e Edição (ATUALIZADO)
             if (session.step === 5) {
                 if (input === "1") {
                     botReply("✅ Solicitação enviada! Aguarde, em breve você receberá os dados de acesso.");
-                    
                     const discordPayload = {
                         title: "🚀 Nova Solicitação de Teste",
                         fields: [
@@ -349,41 +323,26 @@
                         ]
                     };
                     addLog("DISCORD", JSON.stringify(discordPayload, null, 2));
-                    
                     session.status = "IDLE";
                 } 
-                else if (input === "2") {
-                    session.step = 'EDIT_NAME';
-                    botReply("Digite o novo Nome:");
-                }
-                else if (input === "3") {
-                    session.step = 'EDIT_REF';
-                    botReply("Digite o novo Código de Indicação (ou 'não'):");
-                }
-                else if (input === "4" && session.temp_data.mode === "SCHEDULE") {
-                    session.step = 'EDIT_TIME';
-                    showAvailableHours(currentHour);
-                }
+                else if (input === "2") { session.step = 'EDIT_NAME'; botReply("Digite o novo Nome:"); }
+                else if (input === "3") { session.step = 'EDIT_REF'; botReply("Digite o novo Código de Indicação (ou 'não'):"); }
+                else if (input === "4" && session.temp_data.mode === "SCHEDULE") { session.step = 'EDIT_TIME'; showAvailableHours(currentHour); }
                 else if (input === "0") {
                     botReply("Solicitação cancelada. Voltando ao menu...");
                     session.status = "IDLE";
                     setTimeout(() => sendMainMenu(), 1000);
                 }
-                else {
-                    botReply("Opção inválida. Digite o número correspondente à opção desejada.");
-                }
+                else { botReply("Opção inválida. Digite o número correspondente à opção desejada."); }
                 updateSupabaseView();
                 return;
             }
         }
 
-        // --- FUNÇÕES AUXILIARES ---
-
         function sendGreeting(hour) {
             let greeting = "Boa noite";
             if (hour >= 5 && hour < 12) greeting = "Bom dia";
             else if (hour >= 12 && hour < 18) greeting = "Boa tarde";
-
             botReply(`🐼 ${greeting}! Bem-vindo ao *Pandda IPTV*.\nEu sou seu assistente virtual.`);
             setTimeout(() => sendMainMenu(), 800);
         }
@@ -401,22 +360,14 @@
         function showAvailableHours(currentHour) {
             let options = [];
             let start = currentHour < 9 ? 9 : currentHour + 1;
-            
-            for (let h = start; h <= 20; h++) {
-                options.push(`${h}h`);
-            }
-            
-            if (options.length === 0) {
-                botReply("Não há mais horários disponíveis hoje para agendar.");
-            } else {
-                botReply(`Horários disponíveis:\n${options.join(", ")}\n\nDigite apenas o número (ex: 16)`);
-            }
+            for (let h = start; h <= 20; h++) { options.push(`${h}h`); }
+            if (options.length === 0) { botReply("Não há mais horários disponíveis hoje para agendar."); } 
+            else { botReply(`Horários disponíveis:\n${options.join(", ")}\n\nDigite apenas o número (ex: 16)`); }
         }
 
         function sendTestSummary() {
             session.step = 5;
             let isScheduled = session.temp_data.mode === "SCHEDULE";
-            
             let resumo = `📋 *Resumo da Solicitação*\n\n` +
                          `👤 Nome: ${session.temp_data.name}\n` +
                          `🎟 Código: ${session.temp_data.referral || "Nenhum"}\n` +
@@ -428,27 +379,21 @@
                          `3️⃣ Alterar Código Indicação\n` +
                          (isScheduled ? `4️⃣ Alterar Horário\n` : ``) +
                          `0️⃣ Voltar ao Menu Principal`;
-            
             botReply(resumo);
             updateSupabaseView();
         }
-
-        // --- FUNÇÕES DE UI ---
 
         function sendMessage() {
             const input = document.getElementById('userInput');
             const text = input.value;
             if (!text) return;
-
             const chatBox = document.getElementById('chatBox');
             const msgDiv = document.createElement('div');
             msgDiv.className = 'message-out text-white';
             msgDiv.innerText = text;
             chatBox.appendChild(msgDiv);
-            
             input.value = '';
             chatBox.scrollTop = chatBox.scrollHeight;
-
             setTimeout(() => processBotLogic(text), 500);
         }
 
@@ -483,7 +428,6 @@
 
         updateSupabaseView();
         botReply("Sistema Inicializado. Digite 'oi' para começar.");
-
     </script>
 </body>
 </html>
