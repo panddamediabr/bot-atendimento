@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandda Bot V7 - Fluxo Estratégico</title>
+    <title>Pandda Bot V8 - Fluxo Otimizado</title>
     <style>
         :root { --whatsapp-green: #25D366; --bg-dark: #121b22; --panel-bg: #1f2c33; --text-light: #e9edef; --accent: #00a884; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-dark); color: var(--text-light); }
@@ -17,13 +17,12 @@
         input { flex: 1; padding: 12px; border-radius: 20px; border: none; background: #2a3942; color: white; outline: none; }
         button { background: var(--accent); border: none; padding: 10px 25px; border-radius: 20px; color: white; cursor: pointer; font-weight: bold; }
         .session-data { background: #000; padding: 10px; border-radius: 8px; font-family: monospace; color: #0f0; margin-bottom: 20px; font-size: 0.75rem; border: 1px solid #333; }
-        h2 { color: var(--whatsapp-green); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div id="chat-container">
-        <div style="padding: 15px; background: #202c33; font-weight: bold; border-bottom: 1px solid #333;">🐼 Pandda Atendimento V7</div>
+        <div style="padding: 15px; background: #202c33; font-weight: bold; border-bottom: 1px solid #333;">🐼 Pandda Atendimento V8</div>
         <div id="messages"></div>
         <div id="input-area">
             <input type="text" id="userInput" placeholder="Responda aqui..." onkeypress="handleKeyPress(event)" autofocus>
@@ -34,12 +33,12 @@
     <div id="admin-panel">
         <h2>Sessão Supabase</h2>
         <div id="sessionView" class="session-data">{}</div>
-        <h2>Logs de Processamento</h2>
+        <h2>Logs</h2>
         <div id="logs" style="font-size: 0.8rem; font-family: monospace; color: #888;"></div>
     </div>
 
 <script>
-    let session = { step: 'START', name: '', email: '', indicacao: '', horario: '', installed: false };
+    let session = { step: 'START', name: '', email: '', indicacao: '', horario: '', test_mode: '' };
 
     function botReply(text) {
         setTimeout(() => {
@@ -65,34 +64,46 @@
 
             case 'MENU_PRINCIPAL':
                 if (msg === '3') {
-                    session.step = 'TRAVA_INSTALACAO';
-                    botReply(`Antes de liberar seu teste, precisamos garantir que você consiga assistir! 🚀\n\nVocê já tem nossos apps instalados ou sabe como instalar?\n\n📖 **Guia de Instalação:** https://pandda.vip/guia\n\n⚠️ *Lembrando: O tempo de teste começa a contar assim que eu te enviar os dados de acesso.*\n\n1️⃣ Já tenho o app / Já vi o guia\n0️⃣ Voltar ao menu`);
-                } else if (msg === '1') { botReply("DualAPP: 2 aplicativos para você nunca ficar sem sinal! Digite 0 para voltar."); }
-                else if (msg === '2') { botReply("Plano DualAPP: R$ 34,90. Digite 0 para voltar."); }
+                    session.step = 'BOAS_VINDAS_TESTE';
+                    botReply(`**Teste Gratuito Pandda** 🚀\n\nAntes de solicitar, tire suas dúvidas sobre dispositivos e instalação aqui:\n📖 https://pandda.vip/guia\n\n⚠️ **Importante:**\n1. O teste dura 2h após o envio dos dados.\n2. Tenha o app instalado antes de prosseguir.\n\nComo deseja continuar?\n\n1️⃣ Tenho um **Código de Indicação**\n2️⃣ Não tenho código / Continuar sem\n0️⃣ Voltar ao menu`);
+                } 
+                else if (msg === '1') botReply("DualAPP: 2 aplicativos para você nunca ficar sem sinal! Digite 0 para voltar.");
+                else if (msg === '2') botReply("Plano DualAPP: R$ 34,90. Digite 0 para voltar.");
                 break;
 
-            case 'TRAVA_INSTALACAO':
+            case 'BOAS_VINDAS_TESTE':
                 if (msg === '1') {
                     session.step = 'COLETA_INDICACAO';
-                    botReply(`Perfeito! Agora vamos aos dados. 📝\n\nVocê possui algum **CÓDIGO DE INDICAÇÃO**?\n\n*(Se não tiver, digite **NÃO**)*`);
-                } else { botReply("Por favor, acesse o guia https://pandda.vip/guia e digite **1** quando estiver pronto."); }
+                    botReply(`Perfeito! Digite o seu **CÓDIGO DE INDICAÇÃO**:`);
+                } else if (msg === '2') {
+                    session.indicacao = 'Nenhuma';
+                    session.step = 'ESCOLHA_TESTE';
+                    botReply(`Sem problemas! Vamos prosseguir.\n\nComo deseja seu teste?\n1️⃣ Quero agora (Até as 18h)\n2️⃣ Agendar horário`);
+                } else {
+                    botReply("Escolha 1 para usar código ou 2 para continuar sem.");
+                }
                 break;
 
             case 'COLETA_INDICACAO':
-                const regexNao = /^(n|nao|não|nã|no)$/i;
-                session.indicacao = regexNao.test(msg) ? 'Nenhuma' : input.toUpperCase();
-                session.step = 'TESTE_TIPO';
-                botReply(`Anotado! Como deseja seu teste de 2h?\n\n1️⃣ Iniciar AGORA\n2️⃣ Agendar horário (9h às 18h)\n0️⃣ Voltar`);
+                // Simulação de consulta ao banco
+                const codigos = ["PANDDA10", "VIP"];
+                if (codigos.includes(input.toUpperCase())) {
+                    session.indicacao = input.toUpperCase();
+                    botReply(`✅ **Código Válido!** Você terá 6h de teste.\n\nComo deseja receber?\n1️⃣ Agora\n2️⃣ Agendar`);
+                    session.step = 'ESCOLHA_TESTE';
+                } else {
+                    botReply(`❌ Código não encontrado. Tente novamente ou digite **2** para continuar sem código.`);
+                }
                 break;
 
-            case 'TESTE_TIPO':
+            case 'ESCOLHA_TESTE':
                 if (msg === '1') {
                     const h = new Date().getHours();
                     if (h >= 9 && h < 18) {
                         session.horario = "Imediato"; session.step = 'COLETA_NOME';
                         botReply(`Ótimo! Qual seu **nome**?`);
                     } else {
-                        botReply(`Suporte offline agora. Escolha:\n2️⃣ Agendar\n0️⃣ Voltar`);
+                        botReply(`Suporte offline (9h-18h). Digite **2** para agendar ou **0** para o menu.`);
                     }
                 } else if (msg === '2') {
                     session.step = 'COLETA_HORARIO';
@@ -105,7 +116,7 @@
                 if (!isNaN(hSol) && hSol >= 9 && hSol <= 18) {
                     session.horario = hSol + ":00h"; session.step = 'COLETA_NOME';
                     botReply(`Agendado para às ${session.horario}. Qual seu **nome**?`);
-                } else { botReply(`⚠️ Digite apenas a hora (9 a 18).`); }
+                } else { botReply(`⚠️ Digite apenas o número (9 a 18).`); }
                 break;
 
             case 'COLETA_NOME':
@@ -115,16 +126,16 @@
 
             case 'COLETA_EMAIL':
                 session.email = input; session.step = 'CONFIRMACAO';
-                botReply(`**CONFIRMAÇÃO DO TESTE** 🐼\n\n- App: Instalado/Ciente ✅\n- Início: ${session.horario}\n- Nome: ${session.name}\n- E-mail: ${session.email}\n- Cupom: ${session.indicacao}\n\n1️⃣ Confirmar\n2️⃣ Mudar dados`);
+                botReply(`**CONFIRMAÇÃO DO TESTE** 🐼\n\n- Início: ${session.horario}\n- Nome: ${session.name}\n- E-mail: ${session.email}\n- Indicação: ${session.indicacao}\n\n1️⃣ Confirmar e enviar\n2️⃣ Corrigir`);
                 break;
 
             case 'CONFIRMACAO':
                 if (msg === '1') {
-                    botReply(`**Tudo pronto!** 🚀 Seus dados foram enviados. Em breve você recebe o acesso.\n\n0️⃣ Voltar ao menu.`);
+                    botReply(`**Sucesso!** 🚀 Seus dados foram salvos. Aguarde nosso contato.\n\nDigite **0** para o menu.`);
                     session.step = 'START';
                 } else {
-                    session.step = 'TRAVA_INSTALACAO';
-                    botReply("Recomeçando... Já possui o app?");
+                    session.step = 'BOAS_VINDAS_TESTE';
+                    botReply("Recomeçando... Deseja usar código de indicação?");
                 }
                 break;
         }
