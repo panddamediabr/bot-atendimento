@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandda Bot V8 - Fluxo Otimizado</title>
+    <title>Pandda - Atendimento Humanizado</title>
     <style>
         :root { --whatsapp-green: #25D366; --bg-dark: #121b22; --panel-bg: #1f2c33; --text-light: #e9edef; --accent: #00a884; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-dark); color: var(--text-light); }
@@ -17,28 +17,36 @@
         input { flex: 1; padding: 12px; border-radius: 20px; border: none; background: #2a3942; color: white; outline: none; }
         button { background: var(--accent); border: none; padding: 10px 25px; border-radius: 20px; color: white; cursor: pointer; font-weight: bold; }
         .session-data { background: #000; padding: 10px; border-radius: 8px; font-family: monospace; color: #0f0; margin-bottom: 20px; font-size: 0.75rem; border: 1px solid #333; }
+        .log-entry { font-size: 0.75rem; color: #888; font-family: monospace; margin-bottom: 5px; border-bottom: 1px solid #2a3942; padding-bottom: 2px; }
+        h2 { color: var(--whatsapp-green); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div id="chat-container">
-        <div style="padding: 15px; background: #202c33; font-weight: bold; border-bottom: 1px solid #333;">🐼 Pandda Atendimento V8</div>
+        <div style="padding: 15px; background: #202c33; font-weight: bold; border-bottom: 1px solid #333;">🐼 Central de Atendimento Pandda</div>
         <div id="messages"></div>
         <div id="input-area">
-            <input type="text" id="userInput" placeholder="Responda aqui..." onkeypress="handleKeyPress(event)" autofocus>
+            <input type="text" id="userInput" placeholder="Escreva sua mensagem aqui..." onkeypress="handleKeyPress(event)" autofocus>
             <button onclick="sendMessage()">Enviar</button>
         </div>
     </div>
 
     <div id="admin-panel">
-        <h2>Sessão Supabase</h2>
+        <h2>Dados da Sessão (Supabase)</h2>
         <div id="sessionView" class="session-data">{}</div>
-        <h2>Logs</h2>
-        <div id="logs" style="font-size: 0.8rem; font-family: monospace; color: #888;"></div>
+        <h2>Histórico de Ações (Logs)</h2>
+        <div id="logs"></div>
     </div>
 
 <script>
     let session = { step: 'START', name: '', email: '', indicacao: '', horario: '', test_mode: '' };
+
+    function addLog(msg) {
+        const logs = document.getElementById('logs');
+        const time = new Date().toLocaleTimeString();
+        logs.innerHTML = `<div class="log-entry">[${time}] ${msg}</div>` + logs.innerHTML;
+    }
 
     function botReply(text) {
         setTimeout(() => {
@@ -52,12 +60,19 @@
 
     function showMainMenu(txt = "") {
         session.step = 'MENU_PRINCIPAL';
-        botReply(`${txt ? txt + "\n\n" : ""}Olá! Como podemos te ajudar hoje? 🐼\n\n1️⃣ Como funciona?\n2️⃣ Planos e Valores\n3️⃣ Teste Gratuito`);
+        const saudacao = new Date().getHours() < 12 ? "Bom dia" : new Date().getHours() < 18 ? "Boa tarde" : "Boa noite";
+        botReply(`${txt ? txt + "\n\n" : ""}${saudacao}! Seja muito bem-vindo à **Pandda**. 😊\n\nSerá um prazer te atender! Como posso ser útil hoje?\n\n1️⃣ Conhecer o sistema Pandda\n2️⃣ Consultar Planos e Valores\n3️⃣ Solicitar um Teste Gratuito`);
     }
 
     function handleUserInput(input) {
         const msg = input.toLowerCase().trim();
-        if (msg === '0') { showMainMenu("Voltamos ao menu!"); return; }
+        addLog(`Usuário digitou: "${msg}" | Estado atual: ${session.step}`);
+
+        if (msg === '0') { 
+            addLog(`Comando de retorno ao menu detectado.`);
+            showMainMenu("Certinho! Voltamos ao início."); 
+            return; 
+        }
 
         switch (session.step) {
             case 'START': showMainMenu(); break;
@@ -65,34 +80,39 @@
             case 'MENU_PRINCIPAL':
                 if (msg === '3') {
                     session.step = 'BOAS_VINDAS_TESTE';
-                    botReply(`**Teste Gratuito Pandda** 🚀\n\nAntes de solicitar, tire suas dúvidas sobre dispositivos e instalação aqui:\n📖 https://pandda.vip/guia\n\n⚠️ **Importante:**\n1. O teste dura 2h após o envio dos dados.\n2. Tenha o app instalado antes de prosseguir.\n\nComo deseja continuar?\n\n1️⃣ Tenho um **Código de Indicação**\n2️⃣ Não tenho código / Continuar sem\n0️⃣ Voltar ao menu`);
+                    addLog(`Iniciando triagem de teste gratuito.`);
+                    botReply(`Que excelente escolha! Fico feliz pelo seu interesse. 🚀\n\nPara que sua experiência seja perfeita, você pode verificar os **Dispositivos e Apps compatíveis** acessando nosso guia completo aqui:\n📖 https://pandda.vip/guia\n\nLá você encontra o passo a passo para deixar tudo pronto. ✨\n\n*Apenas um detalhe importante: seu teste de 2 horas começa a contar a partir do momento em que enviarmos seus dados de acesso.*\n\nComo deseja prosseguir?\n\n1️⃣ Possuo um código de indicação\n2️⃣ Não possuo código / Continuar agora\n0️⃣ Voltar ao menu principal`);
                 } 
-                else if (msg === '1') botReply("DualAPP: 2 aplicativos para você nunca ficar sem sinal! Digite 0 para voltar.");
-                else if (msg === '2') botReply("Plano DualAPP: R$ 34,90. Digite 0 para voltar.");
+                else if (msg === '1') botReply("Com o sistema **DualAPP**, você tem a liberdade de alternar entre 2 aplicativos de alta performance. É entretenimento sem interrupções! 🐼\n\nDigite **0** para voltar.");
+                else if (msg === '2') botReply("Nossos planos começam em **R$ 34,90** no plano DualAPP (1 tela). É simples, justo e sem fidelidade! 💳\n\nDigite **0** para voltar.");
                 break;
 
             case 'BOAS_VINDAS_TESTE':
                 if (msg === '1') {
                     session.step = 'COLETA_INDICACAO';
-                    botReply(`Perfeito! Digite o seu **CÓDIGO DE INDICAÇÃO**:`);
+                    addLog(`Usuário optou por usar código de indicação.`);
+                    botReply(`Com certeza! Por gentileza, informe o seu **Código de Indicação**:`);
                 } else if (msg === '2') {
                     session.indicacao = 'Nenhuma';
                     session.step = 'ESCOLHA_TESTE';
-                    botReply(`Sem problemas! Vamos prosseguir.\n\nComo deseja seu teste?\n1️⃣ Quero agora (Até as 18h)\n2️⃣ Agendar horário`);
+                    addLog(`Usuário continuará sem código.`);
+                    botReply(`Tudo bem! Vamos dar continuidade.\n\nQual o melhor momento para você receber seu teste?\n\n1️⃣ Gostaria de receber AGORA (Atendimento até as 18h)\n2️⃣ Gostaria de AGENDAR um horário\n0️⃣ Voltar`);
                 } else {
-                    botReply("Escolha 1 para usar código ou 2 para continuar sem.");
+                    botReply("Perdão, não entendi. Escolha **1** se tiver um código ou **2** para continuar sem. 😊");
                 }
                 break;
 
             case 'COLETA_INDICACAO':
-                // Simulação de consulta ao banco
+                addLog(`Consultando código "${input.toUpperCase()}" no banco de dados...`);
                 const codigos = ["PANDDA10", "VIP"];
                 if (codigos.includes(input.toUpperCase())) {
                     session.indicacao = input.toUpperCase();
-                    botReply(`✅ **Código Válido!** Você terá 6h de teste.\n\nComo deseja receber?\n1️⃣ Agora\n2️⃣ Agendar`);
+                    addLog(`Código validado com sucesso!`);
+                    botReply(`✅ **Código validado com sucesso!**\nComo cortesia, seu teste terá uma duração especial de **6 horas**. 🎁\n\nQuando prefere receber os dados?\n1️⃣ Agora mesmo\n2️⃣ Agendar horário`);
                     session.step = 'ESCOLHA_TESTE';
                 } else {
-                    botReply(`❌ Código não encontrado. Tente novamente ou digite **2** para continuar sem código.`);
+                    addLog(`Código inválido ou inexistente.`);
+                    botReply(`❌ Sinto muito, mas não localizei este código.\n\nPor favor, verifique se digitou corretamente ou escolha a opção **2** para continuar sem o código (estamos à disposição da mesma forma!).`);
                 }
                 break;
 
@@ -101,13 +121,16 @@
                     const h = new Date().getHours();
                     if (h >= 9 && h < 18) {
                         session.horario = "Imediato"; session.step = 'COLETA_NOME';
-                        botReply(`Ótimo! Qual seu **nome**?`);
+                        addLog(`Solicitação de teste imediato dentro do horário.`);
+                        botReply(`Perfeito! Para que eu possa te cadastrar, qual o seu **primeiro nome**?`);
                     } else {
-                        botReply(`Suporte offline (9h-18h). Digite **2** para agendar ou **0** para o menu.`);
+                        addLog(`Solicitação imediata fora do horário comercial.`);
+                        botReply(`No momento, nossa equipe de suporte está em intervalo (atendemos das 09h às 18h). 😊\n\nPara sua comodidade, você pode escolher a opção **2** para agendar para amanhã ou digitar **0** para voltarmos ao menu.`);
                     }
                 } else if (msg === '2') {
                     session.step = 'COLETA_HORARIO';
-                    botReply(`Escolha uma hora entre **9** e **18** (apenas o número):`);
+                    addLog(`Iniciando fluxo de agendamento.`);
+                    botReply(`Com prazer! Em qual horário (entre 9 e 18) você gostaria de receber seu acesso?\n\n*(Por gentileza, digite apenas o número da hora, ex: 14)*`);
                 }
                 break;
 
@@ -115,27 +138,38 @@
                 const hSol = parseInt(msg);
                 if (!isNaN(hSol) && hSol >= 9 && hSol <= 18) {
                     session.horario = hSol + ":00h"; session.step = 'COLETA_NOME';
-                    botReply(`Agendado para às ${session.horario}. Qual seu **nome**?`);
-                } else { botReply(`⚠️ Digite apenas o número (9 a 18).`); }
+                    addLog(`Horário ${session.horario} agendado.`);
+                    botReply(`Agendado com sucesso para às **${session.horario}**! ✅\n\nPara finalizar, qual o seu **primeiro nome**?`);
+                } else { 
+                    botReply(`⚠️ Para que o agendamento funcione, por favor digite um número entre **9** e **18**.`);
+                }
                 break;
 
             case 'COLETA_NOME':
                 session.name = input; session.step = 'COLETA_EMAIL';
-                botReply(`Prazer, ${session.name}! Qual seu **e-mail**?`);
+                addLog(`Nome coletado: ${session.name}`);
+                botReply(`Muito prazer, ${session.name}! Por fim, poderia me informar o seu melhor **e-mail**?`);
                 break;
 
             case 'COLETA_EMAIL':
-                session.email = input; session.step = 'CONFIRMACAO';
-                botReply(`**CONFIRMAÇÃO DO TESTE** 🐼\n\n- Início: ${session.horario}\n- Nome: ${session.name}\n- E-mail: ${session.email}\n- Indicação: ${session.indicacao}\n\n1️⃣ Confirmar e enviar\n2️⃣ Corrigir`);
+                if(msg.includes('@')) {
+                    session.email = input; session.step = 'CONFIRMACAO';
+                    addLog(`E-mail coletado: ${session.email}`);
+                    botReply(`**Tudo pronto! Vamos conferir seus dados?** 🐼\n\n📍 Início: ${session.horario}\n👤 Nome: ${session.name}\n📧 E-mail: ${session.email}\n🎟️ Indicação: ${session.indicacao}\n\n1️⃣ Os dados estão corretos!\n2️⃣ Gostaria de alterar algo`);
+                } else {
+                    botReply("Poderia conferir o e-mail? Parece que falta o '@'. 😊");
+                }
                 break;
 
             case 'CONFIRMACAO':
                 if (msg === '1') {
-                    botReply(`**Sucesso!** 🚀 Seus dados foram salvos. Aguarde nosso contato.\n\nDigite **0** para o menu.`);
+                    addLog(`DISPARO: Enviando notificação para o Discord e gravando no Supabase.`);
+                    botReply(`**Solicitação enviada com sucesso!** 🎉\n\nMuito obrigado pela confiança. Em breve você receberá todas as instruções no seu WhatsApp e e-mail. Tenha um excelente entretenimento!\n\nDigite **0** se precisar de mais alguma coisa.`);
                     session.step = 'START';
                 } else {
                     session.step = 'BOAS_VINDAS_TESTE';
-                    botReply("Recomeçando... Deseja usar código de indicação?");
+                    addLog(`Usuário solicitou correção de dados.`);
+                    botReply("Sem problemas, vamos ajustar! Deseja informar um código de indicação?");
                 }
                 break;
         }
@@ -151,7 +185,7 @@
     }
 
     function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
-    botReply("Olá! Digite 'Oi' para iniciar.");
+    botReply("Seja bem-vindo à Pandda! Como posso te ajudar? (Digite qualquer coisa para começar)");
 </script>
 </body>
 </html>
