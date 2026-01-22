@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandda Bot V5 - Fluxo de Teste Robusto</title>
+    <title>Pandda Bot V6 - Fluxo Completo</title>
     <style>
         :root { --whatsapp-green: #25D366; --bg-dark: #121b22; --panel-bg: #1f2c33; --text-light: #e9edef; --accent: #00a884; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-dark); color: var(--text-light); }
         #chat-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; }
-        #admin-panel { width: 350px; background: var(--panel-bg); padding: 20px; overflow-y: auto; border-left: 1px solid #333; }
+        #admin-panel { width: 380px; background: var(--panel-bg); padding: 20px; overflow-y: auto; border-left: 1px solid #333; }
         #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .msg { max-width: 85%; padding: 12px; border-radius: 10px; line-height: 1.4; margin: 5px 0; white-space: pre-wrap; font-size: 0.95rem; }
         .bot { background: #202c33; align-self: flex-start; border-bottom-left-radius: 0; border: 1px solid #333; }
@@ -16,13 +16,16 @@
         #input-area { padding: 20px; background: #202c33; display: flex; gap: 10px; }
         input { flex: 1; padding: 12px; border-radius: 20px; border: none; background: #2a3942; color: white; outline: none; }
         button { background: var(--accent); border: none; padding: 10px 25px; border-radius: 20px; color: white; cursor: pointer; font-weight: bold; }
-        .session-data { background: #000; padding: 15px; border-radius: 8px; font-family: monospace; color: #0f0; margin-bottom: 20px; font-size: 0.8rem; }
+        .session-data { background: #000; padding: 10px; border-radius: 8px; font-family: monospace; color: #0f0; margin-bottom: 20px; font-size: 0.75rem; border: 1px solid #333; }
+        .log-discord { color: #5865F2; font-weight: bold; border-left: 2px solid #5865F2; padding-left: 5px; margin: 5px 0; }
+        .log-db { color: #3ECF8E; font-weight: bold; border-left: 2px solid #3ECF8E; padding-left: 5px; margin: 5px 0; }
+        h2 { color: var(--whatsapp-green); font-size: 0.9rem; text-transform: uppercase; margin-bottom: 10px; }
     </style>
 </head>
 <body>
 
     <div id="chat-container">
-        <div style="padding: 15px; background: #202c33; font-weight: bold; border-bottom: 1px solid #333;">🐼 Pandda Atendimento V5</div>
+        <div style="padding: 15px; background: #202c33; font-weight: bold; border-bottom: 1px solid #333;">🐼 Pandda Atendimento V6</div>
         <div id="messages"></div>
         <div id="input-area">
             <input type="text" id="userInput" placeholder="Responda aqui..." onkeypress="handleKeyPress(event)" autofocus>
@@ -33,19 +36,25 @@
     <div id="admin-panel">
         <h2>Sessão Supabase</h2>
         <div id="sessionView" class="session-data">{}</div>
-        <h2>Logs</h2>
-        <div id="logs" style="font-size: 0.8rem; color: #888; font-family: monospace;"></div>
+        <h2>Sistema & Notificações</h2>
+        <div id="logs" style="font-size: 0.8rem; font-family: monospace;"></div>
     </div>
 
 <script>
     let session = {
         step: 'START',
-        name: '',
-        email: '',
-        indicacao: '',
-        horario: '',
-        is_agendado: false
+        name: '', email: '', indicacao: '', horario: '', 
+        is_agendado: false, code_valid: false
     };
+
+    // Simulação de códigos válidos no banco
+    const codigosValidos = ["PANDDA10", "AMIGO5", "VIP2024"];
+
+    function addLog(type, msg) {
+        const logs = document.getElementById('logs');
+        let style = (type === 'discord') ? 'log-discord' : (type === 'db') ? 'log-db' : '';
+        logs.innerHTML = `<div class="${style}">[${type.toUpperCase()}] ${msg}</div>` + logs.innerHTML;
+    }
 
     function botReply(text) {
         setTimeout(() => {
@@ -60,16 +69,17 @@
 
     function showMainMenu(txt = "") {
         session.step = 'MENU_PRINCIPAL';
-        botReply(`${txt ? txt + "\n\n" : ""}Olá! Como posso te ajudar hoje? 🐼\n\n1️⃣ Como funciona?\n2️⃣ Planos e Valores\n3️⃣ Teste Gratuito\n0️⃣ Menu Principal`);
+        botReply(`${txt ? txt + "\n\n" : ""}Olá! Como posso te ajudar hoje? 🐼\n\n1️⃣ Como funciona?\n2️⃣ Planos e Valores\n3️⃣ Teste Gratuito`);
     }
 
     function handleUserInput(input) {
         const msg = input.toLowerCase().trim();
-        const logs = document.getElementById('logs');
-        logs.innerHTML = `<div>[${session.step}] -> ${msg}</div>` + logs.innerHTML;
+        addLog('user', msg);
 
-        // Resetar para o menu se digitar 0
-        if (msg === '0') { showMainMenu(); return; }
+        if (msg === '0') { 
+            showMainMenu("Voltamos ao menu!"); 
+            return; 
+        }
 
         switch (session.step) {
             case 'START':
@@ -79,96 +89,89 @@
             case 'MENU_PRINCIPAL':
                 if (msg === '3') {
                     session.step = 'COLETA_INDICACAO';
-                    botReply(`Antes de começarmos... 🚀\n\nVocê possui algum **CÓDIGO DE INDICAÇÃO**?\n\n*(Se não tiver, digite **NÃO**)*`);
-                } else if (msg === '1' || msg === '2') {
-                    botReply("Fluxo em desenvolvimento. Digite **3** para Teste Grátis ou **0** para Menu.");
+                    botReply(`Antes de começarmos... 🚀\n\nVocê possui algum **CÓDIGO DE INDICAÇÃO**?\n\n*(Se não tiver, digite **NÃO**)*\n\n0️⃣ Voltar`);
+                } else if (msg === '1') {
+                    botReply("O DualAPP dá acesso a 2 apps simultâneos! Digite 0 para voltar.");
+                } else if (msg === '2') {
+                    botReply("Plano DualAPP: R$ 34,90. Digite 0 para voltar.");
                 } else {
-                    botReply("Escolha uma opção (1, 2 ou 3) ou digite 0.");
+                    botReply("Por favor, escolha 1, 2 ou 3.");
                 }
                 break;
 
             case 'COLETA_INDICACAO':
-                // REGEX para aceitar: n, nao, não, nops, etc (em qualquer variação de maiúsculo/minúsculo)
                 const regexNao = /^(n|nao|não|nã|no)$/i;
-                
                 if (regexNao.test(msg)) {
                     session.indicacao = 'Nenhuma';
+                    session.code_valid = false;
+                    addLog('db', 'Select * from cupons where code = NULL');
+                    botReply(`Sem problemas! Podemos continuar sem código (apenas lembrando que o indicado não receberá bônus na renovação). 🐼\n\nComo deseja seu teste?\n\n1️⃣ Quero agora (9h às 18h)\n2️⃣ Agendar horário\n0️⃣ Menu Principal`);
+                    session.step = 'TESTE_TIPO';
                 } else {
-                    session.indicacao = input; // Mantém o código como o usuário digitou (case sensitive se precisar)
+                    addLog('db', `Select * from cupons where code = '${msg.toUpperCase()}'`);
+                    if (codigosValidos.includes(msg.toUpperCase())) {
+                        session.indicacao = msg.toUpperCase();
+                        session.code_valid = true;
+                        botReply(`✅ **Código Válido!**\nCom este código, seu teste tem duração especial de **6 horas**. 🚀\n\nComo deseja seguir?\n\n1️⃣ Quero agora\n2️⃣ Agendar horário\n0️⃣ Menu Principal`);
+                        session.step = 'TESTE_TIPO';
+                    } else {
+                        botReply(`❌ **Código não encontrado.**\n\nPor favor, cheque o código e digite novamente, ou digite **NÃO** para continuar sem código (o indicado não receberá bônus).\n\n0️⃣ Voltar`);
+                    }
                 }
-                
-                session.step = 'TESTE_TIPO';
-                botReply(`Anotado! 📝\n\nComo deseja seu teste?\n\n1️⃣ Quero agora (Disponível até as 18h)\n2️⃣ Quero agendar horário`);
                 break;
 
             case 'TESTE_TIPO':
                 if (msg === '1') {
-                    const horaAtual = new Date().getHours();
-                    if (horaAtual >= 9 && horaAtual < 18) {
-                        session.is_agendado = false;
+                    const h = new Date().getHours();
+                    if (h >= 9 && h < 18) {
                         session.horario = "Imediato";
                         session.step = 'COLETA_NOME';
-                        botReply(`Perfeito! Vamos liberar agora. Qual seu **nome**?`);
+                        botReply(`Perfeito! Qual seu **nome**?\n\n0️⃣ Menu Principal`);
                     } else {
-                        botReply(`Infelizmente estamos fora do horário de suporte agora (09h às 18h). \n\nDigite **2** para agendar um horário.`);
+                        botReply(`Infelizmente estamos fora do horário de suporte (09h às 18h).\n\nEscolha uma opção:\n2️⃣ **Agendar** para depois\n0️⃣ **Voltar** ao menu principal`);
                     }
                 } else if (msg === '2') {
-                    session.is_agendado = true;
                     session.step = 'COLETA_HORARIO';
-                    botReply(`Beleza! Em qual horário você deseja receber o teste?\n\nEscolha um número entre **9** e **18**.\n\n*(Exemplo: Se quer as 14h, digite apenas **14**)*`);
-                } else {
-                    botReply("Por favor, digite 1 para agora ou 2 para agendar.");
+                    botReply(`Beleza! Escolha um horário entre **9** e **18** (apenas o número):\n\n0️⃣ Voltar`);
                 }
                 break;
 
             case 'COLETA_HORARIO':
-                const horaSol = parseInt(msg);
-                if (!isNaN(horaSol) && horaSol >= 9 && horaSol <= 18) {
-                    session.horario = horaSol + ":00h";
+                const hSol = parseInt(msg);
+                if (!isNaN(hSol) && hSol >= 9 && hSol <= 18) {
+                    session.horario = hSol + ":00h";
                     session.step = 'COLETA_NOME';
-                    botReply(`Agendado para às ${session.horario}! ✅\n\nQual o seu **nome**?`);
+                    botReply(`Agendado para às ${session.horario}! Qual seu **nome**?`);
                 } else {
-                    botReply(`⚠️ Horário fora do permitido! Digite um número de **9** a **18**.`);
+                    botReply(`⚠️ Horário inválido! Digite de 9 a 18 ou **0** para voltar.`);
                 }
                 break;
 
             case 'COLETA_NOME':
-                if (msg.length < 2) {
-                    botReply("Por favor, digite um nome válido.");
-                } else {
-                    session.name = input;
-                    session.step = 'COLETA_EMAIL';
-                    botReply(`Prazer, ${session.name}! Qual seu melhor **e-mail**?`);
-                }
+                session.name = input;
+                session.step = 'COLETA_EMAIL';
+                botReply(`Prazer, ${session.name}! Qual seu **e-mail**?`);
                 break;
 
             case 'COLETA_EMAIL':
-                if (!msg.includes('@')) {
-                    botReply("Por favor, digite um e-mail válido (ex: nome@email.com)");
-                } else {
-                    session.email = input;
-                    session.step = 'CONFIRMACAO';
-                    botReply(`**RESUMO DO TESTE** 🐼\n\n- Indicação: ${session.indicacao}\n- Horário: ${session.horario}\n- Nome: ${session.name}\n- E-mail: ${session.email}\n\n1️⃣ Confirmar\n2️⃣ Alterar dados`);
-                }
+                session.email = input;
+                session.step = 'CONFIRMACAO';
+                botReply(`**RESUMO** 🐼\n\n- Indicação: ${session.indicacao}\n- Horário: ${session.horario}\n- Nome: ${session.name}\n- E-mail: ${session.email}\n\n1️⃣ Confirmar e enviar\n2️⃣ Alterar\n0️⃣ Menu`);
                 break;
 
             case 'CONFIRMACAO':
                 if (msg === '1') {
-                    botReply(`**Sucesso!** Seus dados foram salvos. 🚀\nSeu teste será enviado conforme o horário solicitado.\n\nDigite **0** para voltar ao menu.`);
+                    addLog('discord', `📢 NOVO TESTE: ${session.name} | ${session.horario} | Cupom: ${session.indicacao}`);
+                    addLog('db', `Insert into testes (nome, email, status) values (...)`);
+                    botReply(`**Sucesso!** Tudo pronto. 🚀\n\nDigite **0** para voltar.`);
                     session.step = 'FINISH';
-                } else if (msg === '2') {
-                    session.step = 'COLETA_INDICACAO';
-                    botReply("Vamos recomeçar. Digite seu código de indicação ou **NÃO**.");
                 } else {
-                    botReply("Digite 1 para confirmar ou 2 para corrigir.");
+                    session.step = 'COLETA_INDICACAO';
+                    botReply("Recomeçando... Código de indicação?");
                 }
                 break;
-                
-            case 'FINISH':
-                showMainMenu("O que mais deseja fazer?");
-                break;
 
-            default:
+            case 'FINISH':
                 showMainMenu();
                 break;
         }
@@ -187,7 +190,7 @@
     }
 
     function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
-    botReply("Olá! Digite qualquer coisa para iniciar.");
+    botReply("Olá! Digite 'Oi' para iniciar.");
 </script>
 </body>
 </html>
