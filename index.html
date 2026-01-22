@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pandda - Bot Simulator & Session Manager</title>
+    <style>
+        :root {
+            --whatsapp-green: #25D366;
+            --bg-dark: #121b22;
+            --panel-bg: #1f2c33;
+            --text-light: #e9edef;
+            --accent: #00a884;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-dark); color: var(--text-light); }
+        
+        /* Layout Principal */
+        #chat-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; }
+        #admin-panel { width: 400px; background: var(--panel-bg); padding: 20px; overflow-y: auto; }
+
+        /* Estilo Chat */
+        #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 80%; padding: 10px 15px; border-radius: 10px; line-height: 1.4; margin: 5px 0; }
+        .bot { background: #202c33; align-self: flex-start; border-bottom-left-radius: 0; }
+        .user { background: var(--accent); align-self: flex-end; border-bottom-right-radius: 0; }
+        
+        #input-area { padding: 20px; background: #202c33; display: flex; gap: 10px; }
+        input { flex: 1; padding: 12px; border-radius: 20px; border: none; outline: none; background: #2a3942; color: white; }
+        button { background: var(--accent); border: none; padding: 10px 20px; border-radius: 20px; color: white; cursor: pointer; font-weight: bold; }
+
+        /* Estilo Admin Panel */
+        h2 { color: var(--whatsapp-green); font-size: 1.2rem; margin-top: 0; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .session-data { background: #000; padding: 15px; border-radius: 5px; font-family: 'Courier New', Courier, monospace; font-size: 0.85rem; color: #0f0; margin-bottom: 20px; }
+        .log-entry { font-size: 0.8rem; color: #888; margin-bottom: 5px; border-left: 2px solid var(--accent); padding-left: 8px; }
+        .badge { background: #333; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; }
+    </style>
+</head>
+<body>
+
+    <div id="chat-container">
+        <div style="padding: 15px; background: #202c33; font-weight: bold;">Simulador Pandda Bot (WhatsApp)</div>
+        <div id="messages"></div>
+        <div id="input-area">
+            <input type="text" id="userInput" placeholder="Digite uma opção ou mensagem..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()">Enviar</button>
+        </div>
+    </div>
+
+    <div id="admin-panel">
+        <h2>Sessão Supabase (Real-time)</h2>
+        <div id="sessionView" class="session-data">{}</div>
+        
+        <h2>Logs do Sistema (Tasker/Termux)</h2>
+        <div id="logs"></div>
+    </div>
+
+<script>
+    // --- MOTOR DE ANTIBAN (RANDOMIZAÇÃO) ---
+    const variaveis = {
+        saudacao_dia: ["Bom dia", "Olá, bom dia", "Opa, bom dia", "Bom dia! Tudo bem?"],
+        saudacao_tarde: ["Boa tarde", "Olá, boa tarde", "Como vai? Boa tarde", "Boa tarde!"],
+        saudacao_noite: ["Boa noite", "Opa, boa noite", "Olá, boa noite!", "Boa noite, tudo certo?"],
+        emojis: ["🐼", "✨", "🚀", "📱", "✅", "💎"],
+        confirmacao: ["Com certeza", "Claro", "Beleza", "Entendido", "Perfeito"],
+    };
+
+    function getRand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    // --- ESTADO DA SESSÃO ---
+    let session = {
+        step: 'START',
+        user_name: '',
+        user_email: '',
+        test_type: '', // 'agendado' ou 'imediato'
+        test_time: '',
+        screens: 1,
+        total_price: 34.90
+    };
+
+    const logs = document.getElementById('logs');
+
+    function addLog(msg) {
+        const div = document.createElement('div');
+        div.className = 'log-entry';
+        div.innerHTML = `<span class="badge">${new Date().toLocaleTimeString()}</span> ${msg}`;
+        logs.prepend(div);
+    }
+
+    function updateSessionView() {
+        document.getElementById('sessionView').innerText = JSON.stringify(session, null, 2);
+    }
+
+    // --- LÓGICA DO BOT ---
+    function botReply(text) {
+        setTimeout(() => {
+            const div = document.createElement('div');
+            div.className = 'msg bot';
+            div.innerHTML = text.replace(/\n/g, '<br>');
+            document.getElementById('messages').appendChild(div);
+            document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+            updateSessionView();
+        }, 600);
+    }
+
+    function handleUserInput(input) {
+        const msg = input.toLowerCase();
+        addLog(`Usuário enviou: "${input}"`);
+
+        // Lógica de Menu Inicial
+        if (session.step === 'START' || msg === 'menu') {
+            const hora = new Date().getHours();
+            let saudacao = "";
+            if(hora >= 5 && hora < 12) saudacao = getRand(variaveis.saudacao_dia);
+            else if(hora >= 12 && hora < 18) saudacao = getRand(variaveis.saudacao_tarde);
+            else saudacao = getRand(variaveis.saudacao_noite);
+
+            session.step = 'MENU_PRINCIPAL';
+            botReply(`${saudacao} ${getRand(variaveis.emojis)}\n\nBem-vindo à **Pandda**! Onde você tem liberdade total.\n\nComo posso te ajudar hoje?\n\n1. Como funciona?\n2. Planos e Valores\n3. Teste Gratuito\n4. Dispositivos\n5. Falar com Humano`);
+            return;
+        }
+
+        // MENU PRINCIPAL
+        if (session.step === 'MENU_PRINCIPAL') {
+            if (msg.includes('1')) {
+                botReply(`O nosso diferencial é o **DualAPP**! ${getRand(variaveis.emojis)}\n\nCom ele você recebe acesso a 2 aplicativos diferentes e pode alternar entre eles quando quiser. O plano base dá direito a 1 tela por vez.\n\nLembrando: você só paga quando quiser usar, não é assinatura presa!`);
+            } 
+            else if (msg.includes('2')) {
+                botReply(`Nosso plano DualAPP custa **R$ 34,90**. \n\nSe precisar de mais telas simultâneas, cada tela adicional sai por apenas **R$ 17,90**.\n\nDeseja simular o valor ou gerar link de pagamento?`);
+            }
+            else if (msg.includes('3')) {
+                session.step = 'TESTE_GUIA';
+                botReply(`Ótima escolha! ${getRand(variaveis.emojis)}\n\nPrimeiro, acesse nosso guia de instalação: https://pandda.vip/guia\n\nO teste tem duração de 2h e começa a contar apenas quando você recebe os dados. Deseja:\n\nA) Iniciar agora\nB) Agendar horário`);
+            }
+            return;
+        }
+
+        // FLUXO DE TESTE
+        if (session.step === 'TESTE_GUIA') {
+            const horaAtual = new Date().getHours();
+            if (msg.includes('a')) {
+                if (horaAtual >= 9 && horaAtual < 18) {
+                    session.step = 'COLETA_NOME';
+                    session.test_type = 'imediato';
+                    botReply(`${getRand(variaveis.confirmacao)}! Vamos liberar agora. \n\nPara começar, qual seu primeiro nome?`);
+                } else {
+                    botReply(`Infelizmente nosso suporte para testes imediatos é das 09h às 18h. \n\nDeseja agendar para amanhã?`);
+                }
+            } else if (msg.includes('b')) {
+                session.step = 'COLETA_NOME';
+                session.test_type = 'agendado';
+                botReply(`Perfeito. Vamos agendar! Qual seu primeiro nome?`);
+            }
+            return;
+        }
+
+        if (session.step === 'COLETA_NOME') {
+            session.user_name = input;
+            session.step = 'COLETA_EMAIL';
+            botReply(`Prazer, ${session.user_name}! E qual seria o seu melhor e-mail para o cadastro?`);
+            return;
+        }
+
+        if (session.step === 'COLETA_EMAIL') {
+            session.user_email = input;
+            if (session.test_type === 'agendado') {
+                session.step = 'COLETA_HORARIO';
+                botReply(`E qual horário você prefere? (Lembrando que atendemos das 09h às 18h)`);
+            } else {
+                session.step = 'CONFIRMACAO_FINAL';
+                botReply(`Confirma os dados?\nNome: ${session.user_name}\nE-mail: ${session.user_email}\n\nDigite **OK** para confirmar ou **ALTERAR**.`);
+            }
+            return;
+        }
+
+        if (session.step === 'CONFIRMACAO_FINAL') {
+            if (msg.includes('ok')) {
+                botReply(`Tudo certo! Seus dados foram enviados para o sistema. Em instantes você receberá o acesso no seu e-mail e aqui. ${getRand(variaveis.emojis)}`);
+                addLog("EVENTO: Disparar Webhook para Discord/Supabase");
+                session.step = 'START';
+            }
+            return;
+        }
+    }
+
+    // --- FUNÇÕES DE INTERFACE ---
+    function sendMessage() {
+        const input = document.getElementById('userInput');
+        if (input.value.trim() === "") return;
+        
+        const div = document.createElement('div');
+        div.className = 'msg user';
+        div.innerText = input.value;
+        document.getElementById('messages').appendChild(div);
+        
+        handleUserInput(input.value);
+        input.value = "";
+        document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
+    }
+
+    function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
+
+    // Início automático
+    updateSessionView();
+    botReply("Olá! Digite 'Oi' ou 'Menu' para começar o simulador do Pandda.");
+</script>
+
+</body>
+</html>
