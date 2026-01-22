@@ -3,51 +3,74 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandda Bot V2 - Fluxo Robusto</title>
+    <title>Pandda Bot V3 - Corrigido</title>
     <style>
         :root { --whatsapp-green: #25D366; --bg-dark: #121b22; --panel-bg: #1f2c33; --text-light: #e9edef; --accent: #00a884; }
         body { font-family: 'Segoe UI', sans-serif; margin: 0; display: flex; height: 100vh; background: var(--bg-dark); color: var(--text-light); }
         #chat-container { flex: 1; display: flex; flex-direction: column; border-right: 1px solid #333; }
-        #admin-panel { width: 400px; background: var(--panel-bg); padding: 20px; overflow-y: auto; }
+        #admin-panel { width: 350px; background: var(--panel-bg); padding: 20px; overflow-y: auto; border-left: 1px solid #333; }
         #messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .msg { max-width: 80%; padding: 10px 15px; border-radius: 10px; line-height: 1.4; margin: 5px 0; white-space: pre-wrap; }
+        .msg { max-width: 85%; padding: 12px; border-radius: 10px; line-height: 1.4; margin: 5px 0; white-space: pre-wrap; font-size: 0.95rem; }
         .bot { background: #202c33; align-self: flex-start; border-bottom-left-radius: 0; border: 1px solid #333; }
-        .user { background: var(--accent); align-self: flex-end; border-bottom-right-radius: 0; }
+        .user { background: var(--accent); align-self: flex-end; border-bottom-right-radius: 0; color: white; }
         #input-area { padding: 20px; background: #202c33; display: flex; gap: 10px; }
-        input { flex: 1; padding: 12px; border-radius: 20px; border: none; background: #2a3942; color: white; }
-        button { background: var(--accent); border: none; padding: 10px 20px; border-radius: 20px; color: white; cursor: pointer; font-weight: bold; }
-        .session-data { background: #000; padding: 15px; border-radius: 5px; font-family: monospace; color: #0f0; margin-bottom: 20px; }
-        h2 { color: var(--whatsapp-green); font-size: 1.1rem; }
+        input { flex: 1; padding: 12px; border-radius: 20px; border: none; background: #2a3942; color: white; outline: none; }
+        button { background: var(--accent); border: none; padding: 10px 25px; border-radius: 20px; color: white; cursor: pointer; font-weight: bold; }
+        .session-data { background: #000; padding: 15px; border-radius: 8px; font-family: monospace; color: #0f0; margin-bottom: 20px; font-size: 0.8rem; }
+        h2 { color: var(--whatsapp-green); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; }
+        .log-tag { color: #555; font-size: 0.7rem; margin-top: 10px; display: block; }
     </style>
 </head>
 <body>
 
     <div id="chat-container">
-        <div style="padding: 15px; background: #202c33; font-weight: bold; border-bottom: 1px solid #333;">🐼 Pandda Atendimento (V2)</div>
+        <div style="padding: 15px; background: #202c33; font-weight: bold; border-bottom: 1px solid #333; display: flex; align-items: center; gap: 10px;">
+            <div style="width: 10px; height: 10px; background: #25D366; border-radius: 50%;"></div>
+            🐼 Pandda DualAPP - Atendimento
+        </div>
         <div id="messages"></div>
         <div id="input-area">
-            <input type="text" id="userInput" placeholder="Responda aqui..." onkeypress="handleKeyPress(event)">
+            <input type="text" id="userInput" placeholder="Responda aqui..." onkeypress="handleKeyPress(event)" autofocus>
             <button onclick="sendMessage()">Enviar</button>
         </div>
     </div>
 
     <div id="admin-panel">
-        <h2>Sessão no Supabase</h2>
+        <h2>Sessão Supabase</h2>
         <div id="sessionView" class="session-data">{}</div>
-        <h2>Logs de Decisão</h2>
-        <div id="logs" style="font-size: 0.8rem; color: #aaa;"></div>
+        <h2>Histórico de Estados</h2>
+        <div id="logs" style="font-size: 0.8rem; color: #888; font-family: monospace;"></div>
     </div>
 
 <script>
+    // Configurações e Variáveis
     const vars = {
-        emojis: ["🐼", "✨", "🚀", "✅", "🛰️"],
-        ok: ["Perfeito", "Certinho", "Entendido", "Tudo certo"],
-        aviso_menu: "\n\n*(Digite 0 para voltar ao menu principal)*"
+        emojis: ["🐼", "✨", "🚀", "✅", "🛰️", "💎"],
+        saudacao: () => {
+            const h = new Date().getHours();
+            if(h >= 5 && h < 12) return "Bom dia";
+            if(h >= 12 && h < 18) return "Boa tarde";
+            return "Boa noite";
+        }
     };
 
-    let session = { step: 'START', name: '', email: '', screens: 1, total: 34.90 };
+    let session = {
+        step: 'START',
+        name: '',
+        email: '',
+        screens: 1,
+        total: 34.90,
+        last_input: ''
+    };
 
-    function getRand(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+    function updateView() {
+        document.getElementById('sessionView').innerText = JSON.stringify(session, null, 2);
+    }
+
+    function addLog(msg) {
+        const l = document.getElementById('logs');
+        l.innerHTML = `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>` + l.innerHTML;
+    }
 
     function botReply(text) {
         setTimeout(() => {
@@ -56,133 +79,137 @@
             div.innerHTML = text;
             document.getElementById('messages').appendChild(div);
             document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
-            document.getElementById('sessionView').innerText = JSON.stringify(session, null, 2);
-        }, 500);
+            updateView();
+        }, 400);
     }
 
-    function addLog(msg) {
-        const logs = document.getElementById('logs');
-        logs.innerHTML = `> ${msg}<br>` + logs.innerHTML;
+    // FUNÇÃO PRINCIPAL DO MENU
+    function showMainMenu(customText = "") {
+        session.step = 'MENU_PRINCIPAL'; // AGORA O ESTADO MUDA AQUI!
+        const intro = customText ? customText + "\n\n" : `${vars.saudacao()}! ${vars.emojis[0]}\n\nEu sou o assistente da **Pandda**. Como posso te ajudar? \n\n`;
+        botReply(`${intro}1️⃣ Como funciona?\n2️⃣ Planos e Valores\n3️⃣ Teste Gratuito\n4️⃣ Dispositivos compatíveis\n5️⃣ Falar com Humano`);
     }
 
     function handleUserInput(input) {
         const msg = input.toLowerCase().trim();
-        addLog(`Estado: ${session.step} | Input: ${msg}`);
+        session.last_input = msg;
+        addLog(`Estado: ${session.step} -> Input: ${msg}`);
 
-        // COMANDO GLOBAL DE RESET
-        if (msg === '0' || msg === 'menu' || msg === 'sair') {
-            session.step = 'MENU_PRINCIPAL';
-            showMainMenu();
+        // COMANDO GLOBAL PARA VOLTAR
+        if (msg === '0' || msg === 'menu') {
+            showMainMenu("Voltamos ao menu principal! 🏠");
             return;
         }
 
+        // MÁQUINA DE ESTADOS (SWITCH)
         switch (session.step) {
+            
             case 'START':
                 showMainMenu();
                 break;
 
             case 'MENU_PRINCIPAL':
                 if (msg === '1') {
-                    botReply(`Como funciona o **DualAPP**? ${getRand(vars.emojis)}\n\nÉ simples: você tem acesso a 2 aplicativos de alta performance. Se um estiver em manutenção, você pula para o outro! \n\nSem contratos, sem fidelidade. Paga quando usar.${vars.aviso_menu}`);
+                    botReply(`O **DualAPP** é o nosso sistema exclusivo: você recebe 2 aplicativos diferentes pelo preço de 1! ${vars.emojis[1]}\n\nSe um app falhar ou entrar em manutenção, você tem o outro de reserva imediatamente.\n\nE o melhor: sem fidelidade. Paga quando usar.\n\nDigite **0** para voltar ao menu.`);
                 } 
                 else if (msg === '2') {
-                    session.step = 'MENU_PLANOS';
-                    botReply(`**Planos e Valores** 💳\n\n- Plano DualAPP (1 tela): R$ 34,90\n- Tela Adicional: R$ 17,90\n\nO que deseja fazer?\n\n1️⃣ Simular valor com mais telas\n2️⃣ Gerar link de pagamento\n0️⃣ Voltar ao menu`);
+                    session.step = 'SUBMENU_PLANOS';
+                    botReply(`**Planos e Valores** 💳\n\n- Plano DualAPP (1 tela): R$ 34,90\n- Tela Adicional: R$ 17,90\n\nEscolha uma opção:\n1️⃣ Simular valor com mais telas\n2️⃣ Comprar agora\n0️⃣ Voltar`);
                 }
                 else if (msg === '3') {
-                    session.step = 'TESTE_OPCAO';
-                    botReply(`**Teste Gratuito** ${getRand(vars.emojis)}\n\nO teste dura 2h e começa a contar após o envio dos dados.\nGuia: https://pandda.vip/guia\n\nComo prefere seguir?\n\n1️⃣ Iniciar agora (9h às 18h)\n2️⃣ Agendar horário\n0️⃣ Voltar`);
+                    session.step = 'SUBMENU_TESTE';
+                    botReply(`**Teste Gratuito** ${vars.emojis[2]}\n\nO teste dura 2h e liberamos das 09h às 18h.\nGuia: https://pandda.vip/guia\n\nO que deseja?\n1️⃣ Quero testar agora\n2️⃣ Agendar para depois\n0️⃣ Voltar`);
                 }
                 else if (msg === '4') {
-                    botReply(`**Dispositivos Compatíveis** 📱\n\n- Smart TVs (Samsung, LG, Android)\n- TV Box e Fire Stick\n- Celulares (Android e iOS)\n- Computadores e Notebooks\n\nQualquer dúvida, digite 5 para falar com um humano.${vars.aviso_menu}`);
+                    botReply(`**Dispositivos** ${vars.emojis[3]}\n\nRodamos em Smart TVs, TV Box, Celular e PC. No nosso guia tem o passo a passo para cada um: https://pandda.vip/guia\n\nDigite **0** para voltar.`);
+                }
+                else if (msg === '5') {
+                    botReply(`Entendido! Vou te transferir para um atendente humano. Aguarde um instante... 🙋‍♂️`);
                 }
                 else {
-                    botReply(`Ops, não entendi. Escolha uma opção de 1 a 5, ou digite 0 para ver o menu.`);
+                    botReply(`Escolha uma opção de 1 a 5, ou digite **0** para o menu principal.`);
                 }
                 break;
 
-            case 'MENU_PLANOS':
+            case 'SUBMENU_PLANOS':
                 if (msg === '1') {
-                    session.step = 'SIMULAR_TELAS';
-                    botReply(`Quantas **telas extras** você deseja? (Além da que já vem no plano)\n\n*Exemplo: se você quer 3 telas no total, digite 2.*`);
+                    session.step = 'COLETA_TELAS';
+                    botReply(`Quantas telas extras você quer adicionar? \n*(Digite apenas o número)*`);
                 } else if (msg === '2') {
-                    botReply(`Gerando seu link seguro do Mercado Pago...\n\nNo Cartão (com taxa de 3,99%): R$ 36,29\nNo Pix: R$ 34,90\n\nLink: https://checkout.pandda.vip/pay-${Math.floor(Math.random()*1000)}${vars.aviso_menu}`);
+                    botReply(`Excelente! No Pix fica **R$ 34,90**.\nNo Cartão (com taxa): R$ 36,29.\n\nLink seguro: https://checkout.pandda.vip/pagar\n\nAo pagar, me envie o comprovante! 🐼`);
                 } else {
-                    botReply(`Por favor, escolha 1 para simular ou 2 para pagar. Digite 0 para voltar.`);
+                    botReply(`Escolha 1 para simular, 2 para pagar ou 0 para voltar.`);
                 }
                 break;
 
-            case 'SIMULAR_TELAS':
-                let extras = parseInt(msg);
-                if (!isNaN(extras)) {
-                    let total = 34.90 + (extras * 17.90);
-                    botReply(`Cálculo para ${extras + 1} telas:\n\nPlano Base: R$ 34,90\n${extras} Adicionais: R$ ${(extras * 17.90).toFixed(2)}\n--- \n**Total: R$ ${total.toFixed(2)}**\n\nDigite 2 para gerar o pagamento ou 0 para voltar.`);
-                    session.step = 'MENU_PLANOS';
+            case 'COLETA_TELAS':
+                const n = parseInt(msg);
+                if (!isNaN(n)) {
+                    session.total = 34.90 + (n * 17.90);
+                    botReply(`Cálculo:\n1 Tela Base + ${n} Extras = ${n+1} Telas.\n\n**Total: R$ ${session.total.toFixed(2)}**\n\nDigite **2** para pagar ou **0** para voltar.`);
+                    session.step = 'SUBMENU_PLANOS';
                 } else {
-                    botReply(`Por favor, digite apenas o número de telas adicionais.`);
+                    botReply(`Por favor, envie apenas o número de telas (ex: 1, 2, 3...)`);
                 }
                 break;
 
-            case 'TESTE_OPCAO':
-                if (msg === '1') {
-                    const hora = new Date().getHours();
-                    if (hora >= 9 && hora < 18) {
-                        session.step = 'COLETA_NOME';
-                        botReply(`${getRand(vars.ok)}! Qual seu nome?`);
-                    } else {
-                        botReply(`No momento estamos fora do horário de testes (09h às 18h). \n\nDigite 2 para **Agendar** para amanhã!`);
-                    }
-                } else if (msg === '2') {
+            case 'SUBMENU_TESTE':
+                if (msg === '1' || msg === '2') {
                     session.step = 'COLETA_NOME';
-                    botReply(`Beleza! Vamos agendar. Qual seu nome?`);
+                    botReply(`Beleza! Para gerar seu acesso, qual o seu **primeiro nome**?`);
                 } else {
-                    botReply(`Escolha 1 para agora ou 2 para agendar.`);
+                    botReply(`Escolha 1 para agora, 2 para agendar ou 0 para voltar.`);
                 }
                 break;
 
             case 'COLETA_NOME':
                 session.name = input;
                 session.step = 'COLETA_EMAIL';
-                botReply(`Prazer, ${session.name}! Agora digite seu e-mail:`);
+                botReply(`Prazer, ${session.name}! Agora, qual seu melhor **e-mail**?`);
                 break;
 
             case 'COLETA_EMAIL':
                 session.email = input;
-                session.step = 'CONFIRMACAO_DADOS';
-                botReply(`Confirma os dados?\n\nNome: ${session.name}\nE-mail: ${session.email}\n\n1️⃣ Sim, está correto\n2️⃣ Não, quero alterar`);
+                session.step = 'FINALIZAR_TESTE';
+                botReply(`Confirma os dados para o teste?\n\nNome: ${session.name}\nE-mail: ${session.email}\n\n1️⃣ Sim, está correto\n2️⃣ Não, quero mudar`);
                 break;
 
-            case 'CONFIRMACAO_DADOS':
+            case 'FINALIZAR_TESTE':
                 if (msg === '1') {
-                    botReply(`${getRand(vars.ok)}! Pedido enviado. Fique atento ao seu WhatsApp e E-mail! ${getRand(vars.emojis)}`);
+                    botReply(`Pedido confirmado! Em instantes nosso sistema enviará as credenciais. ${vars.emojis[4]}`);
                     session.step = 'MENU_PRINCIPAL';
+                    setTimeout(() => showMainMenu("O que mais deseja fazer?"), 2000);
                 } else {
                     session.step = 'COLETA_NOME';
-                    botReply(`Sem problemas. Vamos recomeçar: Qual seu nome?`);
+                    botReply(`Sem problemas. Qual seu nome?`);
                 }
+                break;
+
+            default:
+                showMainMenu();
                 break;
         }
     }
 
-    function showMainMenu() {
-        const hora = new Date().getHours();
-        let saudacao = (hora < 12) ? "Bom dia" : (hora < 18) ? "Boa tarde" : "Boa noite";
-        botReply(`${saudacao}! ${getRand(vars.emojis)}\n\nEu sou o assistente digital da **Pandda**.\n\nEscolha uma opção:\n\n1️⃣ Como funciona?\n2️⃣ Planos e Valores\n3️⃣ Teste Gratuito\n4️⃣ Dispositivos compatíveis\n5️⃣ Falar com Humano`);
-    }
-
     function sendMessage() {
         const input = document.getElementById('userInput');
-        if (input.value.trim() === "") return;
+        const text = input.value.trim();
+        if (text === "") return;
+        
         const div = document.createElement('div');
         div.className = 'msg user';
-        div.innerText = input.value;
+        div.innerText = text;
         document.getElementById('messages').appendChild(div);
-        handleUserInput(input.value);
+        
+        handleUserInput(text);
         input.value = "";
+        document.getElementById('messages').scrollTop = document.getElementById('messages').scrollHeight;
     }
 
     function handleKeyPress(e) { if (e.key === 'Enter') sendMessage(); }
-    botReply("Olá! Digite 'Oi' para começar.");
+    
+    // Start
+    botReply("Olá! Digite qualquer coisa para começar.");
 </script>
 </body>
 </html>
