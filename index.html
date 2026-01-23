@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pandda - Simulador Anti-Ban V3</title>
+    <title>Pandda - Agendamento Inteligente V4</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -27,12 +27,12 @@
                 <div class="w-10 h-10 rounded-full bg-green-500 flex items-center justify-center text-white font-bold shrink-0">P</div>
                 <div class="overflow-hidden">
                     <h3 class="font-semibold text-gray-100 truncate">Pandda Assistant</h3>
-                    <p class="text-xs text-green-400">● Online (Anti-Ban V3)</p>
+                    <p class="text-xs text-green-400">● Online (V4 Scheduler)</p>
                 </div>
             </div>
             <div class="flex flex-col items-end shrink-0">
                 <label class="text-[10px] text-gray-400">Hora Simulada:</label>
-                <input type="number" id="simulatedHour" class="bg-gray-700 text-white text-xs p-1 rounded w-14 text-center" min="0" max="23" value="10">
+                <input type="number" id="simulatedHour" class="bg-gray-700 text-white text-xs p-1 rounded w-14 text-center" min="0" max="23" value="14">
             </div>
         </div>
 
@@ -61,8 +61,7 @@
             
             <div class="bg-[#1f2937] rounded-lg p-3 flex flex-col border border-gray-700 shadow-lg col-span-2 h-48 md:h-auto">
                 <h3 class="text-yellow-400 font-bold mb-2 text-xs uppercase flex justify-between">
-                    <span><i class="fas fa-random mr-2"></i>Anti-Ban Engine (Variação Semântica)</span>
-                    <span class="text-[10px] text-gray-500">Log em tempo real</span>
+                    <span><i class="fas fa-random mr-2"></i>Anti-Ban Engine</span>
                 </h3>
                 <div class="flex-1 bg-black rounded p-2 overflow-y-auto json-view text-yellow-100" id="textEngineLog">
                     // Aguardando processamento...
@@ -70,12 +69,12 @@
             </div>
 
             <div class="bg-[#1f2937] rounded-lg p-3 flex flex-col border border-gray-700 shadow-lg h-40 md:h-auto">
-                <h3 class="text-blue-400 font-bold mb-2 text-xs uppercase"><i class="fas fa-memory mr-2"></i>Sessão Atual (Memória)</h3>
+                <h3 class="text-blue-400 font-bold mb-2 text-xs uppercase"><i class="fas fa-memory mr-2"></i>Sessão Atual</h3>
                 <div class="flex-1 bg-black rounded p-2 overflow-y-auto json-view text-blue-200" id="supabaseView"></div>
             </div>
 
             <div class="bg-[#1f2937] rounded-lg p-3 flex flex-col border border-gray-700 shadow-lg h-40 md:h-auto">
-                <h3 class="text-green-400 font-bold mb-2 text-xs uppercase"><i class="fas fa-list-alt mr-2"></i>Logs Gerais (DB & Webhooks)</h3>
+                <h3 class="text-green-400 font-bold mb-2 text-xs uppercase"><i class="fas fa-list-alt mr-2"></i>Logs Gerais (DB)</h3>
                 <div class="flex-1 bg-black rounded p-2 overflow-y-auto json-view text-gray-300" id="logsView"></div>
             </div>
         </div>
@@ -83,140 +82,97 @@
 
     <script>
         // --- CONFIGURAÇÃO DE TEXTOS DINÂMICOS (ANTI-BAN V3) ---
-        
         const SYNONYMS = {
             "{saudacao_dia}": ["Bom dia", "Ótimo dia", "Um bom dia"],
             "{saudacao_tarde}": ["Boa tarde", "Uma boa tarde", "Tarde"],
             "{saudacao_noite}": ["Boa noite", "Uma boa noite", "Noite"],
             "{emoji_feliz}": ["🐼", "✅", "🤝", "👍"],
-            "{emoji_atencao}": ["⚠️", "❗", "🧐", "🔔"],
-            "{verbo_ajuda}": ["ajudar", "auxiliar", "atender", "dar suporte"],
             "{nome_bot}": ["Assistente Pandda", "Atendente Virtual", "Sistema Pandda", "Suporte Digital"],
-            "{menu_intro}": ["Por favor, escolha uma opção:", "Selecione como prosseguir:", "Digite o número correspondente:", "Como deseja continuar?"]
+            "{menu_intro}": ["Por favor, escolha uma opção:", "Selecione como prosseguir:", "Como deseja continuar?"]
         };
 
         const TEXT_VARIANTS = {
             "GREETING": [
-                "Oi, {saudacao}. Sou seu {nome_bot} e vou te atender. Como posso {verbo_ajuda}?",
+                "Oi, {saudacao}. Sou seu {nome_bot} e vou te atender. Como posso ajudar?",
                 "Olá, {saudacao}. Aqui é o {nome_bot}. Estou pronto para iniciar seu atendimento.",
-                "{saudacao}. Eu sou a inteligência virtual do Pandda. Escolha uma opção para começarmos.",
-                "Seja bem-vindo. {saudacao}. Sou o sistema de autoatendimento. Como posso ser útil hoje?",
                 "{saudacao}. Aqui quem fala é o {nome_bot}. Vou guiar você no que precisar."
             ],
             "HOW_IT_WORKS": [
                 "ℹ️ *Como Funciona:*\n\nO Pandda funciona via internet na sua TV, Celular ou TV Box. \n💰 Valor: R$ 34,90 (Plano Mensal).\n✅ Sem fidelidade: Pague somente o mês que quiser usar.\n\nVeja o guia de instalação: pandda.vip/guia",
-                "Sobre o Sistema:\n\nVocê instala nossos apps em Smart TVs ou Android e assiste a tudo via internet.\nO custo é R$ 34,90/mês.\nLembrando: Não é assinatura recorrente, é pré-pago (usou, pagou).\n\nInstruções completas: pandda.vip/guia",
-                "Entenda o Pandda:\n\n1. Compatível com TV, Box e Celular.\n2. Custa apenas R$ 34,90 por mês.\n3. Modelo Pré-pago: Sem multas ou contratos, pague apenas quando precisar.\n\nBaixe os apps aqui: pandda.vip/guia",
-                "Tudo sobre o plano:\n\nFunciona em qualquer dispositivo com internet. O acesso custa R$ 34,90 (30 dias).\nNão prendemos seu cartão! É pagamento único para liberar 30 dias.\n\nSaiba mais: pandda.vip/guia",
-                "Resumo do Serviço:\n\nSistema de IPTV compatível com Android/SmartTV.\nValor único: R$ 34,90.\nSem burocracia: Pague só quando quiser assistir.\n\nGuia de Configuração: pandda.vip/guia"
+                "Sobre o Sistema:\n\nVocê instala nossos apps em Smart TVs ou Android e assiste a tudo via internet.\nO custo é R$ 34,90/mês.\nLembrando: Não é assinatura recorrente, é pré-pago (usou, pagou).\n\nInstruções completas: pandda.vip/guia"
             ],
             "MENU_MAIN": [
                 "{menu_intro}\n\n1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assine\n4️⃣ Teste Gratuito\n5️⃣ Dúvidas Frequentes\n6️⃣ Falar com atendente",
-                "Confira nosso menu principal:\n\n1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assine\n4️⃣ Teste Gratuito\n5️⃣ Dúvidas Frequentes\n6️⃣ Falar com atendente",
-                "{saudacao}. {menu_intro}\n\n1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assine\n4️⃣ Teste Gratuito\n5️⃣ Dúvidas Frequentes\n6️⃣ Falar com atendente",
-                "Opções de autoatendimento:\n\n1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assine\n4️⃣ Teste Gratuito\n5️⃣ Dúvidas Frequentes\n6️⃣ Falar com atendente",
-                "Selecione uma das opções abaixo:\n\n1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assine\n4️⃣ Teste Gratuito\n5️⃣ Dúvidas Frequentes\n6️⃣ Falar com atendente"
+                "Confira nosso menu principal:\n\n1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assine\n4️⃣ Teste Gratuito\n5️⃣ Dúvidas Frequentes\n6️⃣ Falar com atendente"
             ],
             "PLAN_INFO": [
                 "*Nossos Planos* 📺\n\nBase (1 Tela): R$ 34,90\nTela Extra: + R$ 17,90\n\nQualidade máxima garantida!",
-                "💲 *Preços Atuais:*\n\nPlano DualAPP: R$ 34,90 (1 conexão)\nAdicional: R$ 17,90 por tela.\n\nO melhor custo benefício!",
-                "Confira os valores: {emoji_feliz}\n\n🔹 1 Tela: 34,90/mês\n🔹 Tela Extra: 17,90/mês\n\nAcesso a canais e VODs inclusos.",
-                "Tabela de Planos:\n\n✅ Principal: R$ 34,90\n✅ Ponto Extra: R$ 17,90\n\nEstabilidade e qualidade 4K/FHD.",
-                "Quanto custa? 🤔\n\nSua assinatura sai por apenas R$ 34,90. Precisa de mais telas? Só R$ 17,90 cada."
+                "💲 *Preços Atuais:*\n\nPlano DualAPP: R$ 34,90 (1 conexão)\nAdicional: R$ 17,90 por tela."
             ],
             "TEST_INTRO": [
                 "Para testar é simples! Instale 2 apps do guia: pandda.vip/guia. O teste dura 6h.",
-                "Quer testar? {emoji_feliz} Baixe nossos apps em pandda.vip/guia. Liberamos 6 horas grátis.",
-                "Bora testar! Acesse pandda.vip/guia, instale e me avise. O acesso dura 6 horas.",
-                "Teste Grátis de 6h! 🚀 Primeiro, certifique-se de instalar os apps: pandda.vip/guia",
-                "Experimente sem compromisso (6 horas). Guia de instalação: pandda.vip/guia"
+                "Quer testar? {emoji_feliz} Baixe nossos apps em pandda.vip/guia. Liberamos 6 horas grátis."
             ],
             "ERROR_DEFAULT": [
-                "{emoji_atencao} Não entendi. Escolha uma opção do menu.",
-                "Opção inválida. Por favor, tente novamente digitando o número.",
-                "Ops! Não reconheci esse comando. Digite o número da opção.",
-                "Comando desconhecido. Veja o menu e digite o número.",
-                "{emoji_atencao} Digite apenas o número da opção desejada."
+                "⚠️ Não entendi. Escolha uma opção do menu.",
+                "Opção inválida. Por favor, tente novamente digitando o número."
             ]
         };
 
-        // --- FAQ SHUFFLER (LÓGICA DE EMBARALHAR ITENS) ---
         const FAQ_ITEMS = [
-            "📱 *Posso usar no celular?*\nSim! Temos app próprio para Android. No iOS usamos apps compatíveis.",
-            "📺 *Onde posso utilizar?*\nSmart TVs (Samsung/LG), TV Box, Chromecast, Celulares e Computador.",
-            "🎬 *Qual o conteúdo?*\nLiberamos grade completa: Canais ao vivo (abertos e fechados), Filmes de cinema, Séries e Doramas.",
-            "💸 *Como é o pagamento?*\nTotalmente pré-pago. Sem surpresas na fatura. Pagou, usou o mês."
+            "📱 *Posso usar no celular?*\nSim! Temos app próprio para Android.",
+            "📺 *Onde posso utilizar?*\nSmart TVs, TV Box, Chromecast e Celulares.",
+            "🎬 *Qual o conteúdo?*\nGrade completa: Canais ao vivo, Filmes e Séries.",
+            "💸 *Como é o pagamento?*\nTotalmente pré-pago. Sem surpresas na fatura."
         ];
 
         function getFaqText() {
-            // Embaralha o array de items
             let items = [...FAQ_ITEMS].sort(() => Math.random() - 0.5);
-            
-            // Monta a mensagem
-            let msg = `❓ *Dúvidas Frequentes*\n\n`;
-            msg += items.join("\n\n");
-            msg += `\n\n🔗 Mais informações detalhadas em nosso site oficial.`;
-            
-            logTextEngine("FAQ_DYNAMIC", "Lista Original", "Lista Embaralhada + Footer");
-            return msg;
+            return `❓ *Dúvidas Frequentes*\n\n` + items.join("\n\n") + `\n\n🔗 Mais informações no site.`;
         }
 
-        // --- LÓGICA DO GERADOR DE TEXTO ---
-
-        function getDynamicText(key, context = {}) {
+        function getDynamicText(key) {
             const templates = TEXT_VARIANTS[key] || TEXT_VARIANTS["ERROR_DEFAULT"];
             let template = templates[Math.floor(Math.random() * templates.length)];
-            const originalTemplate = template;
-
             const hour = parseInt(document.getElementById('simulatedHour').value);
-            let timeKey = "{saudacao_noite}";
-            if (hour >= 5 && hour < 12) timeKey = "{saudacao_dia}";
-            else if (hour >= 12 && hour < 18) timeKey = "{saudacao_tarde}";
+            let timeKey = hour < 12 ? "{saudacao_dia}" : (hour < 18 ? "{saudacao_tarde}" : "{saudacao_noite}");
             
             template = template.replace("{saudacao}", getRandomSynonym(timeKey));
-            template = template.replace(/{(\w+)}/g, (match) => {
-                return getRandomSynonym(match) || match;
-            });
-
-            logTextEngine(key, originalTemplate, template);
+            template = template.replace(/{(\w+)}/g, (match) => getRandomSynonym(match) || match);
             return template;
         }
 
         function getRandomSynonym(key) {
             const list = SYNONYMS[key];
-            if (!list) return null;
-            return list[Math.floor(Math.random() * list.length)];
+            return list ? list[Math.floor(Math.random() * list.length)] : null;
         }
 
-        function logTextEngine(key, original, final) {
-            const view = document.getElementById('textEngineLog');
-            const entry = `
-<div class="mb-2 border-b border-gray-700 pb-2">
-    <span class="text-blue-400 font-bold">[${key}]</span>
-    <div class="text-gray-500 text-[10px]">Orig: "${original.substring(0, 50)}..."</div>
-    <div class="text-yellow-400 mt-1 text-xs">Final: "${final.substring(0, 50)}..."</div>
-</div>`;
-            view.innerHTML = entry + view.innerHTML;
-        }
-
-        // --- SISTEMA LÓGICO (BOT) ---
+        // --- LÓGICA DO BOT ---
 
         const CONFIG = {
             prices: { base: 34.90, extra: 17.90 },
             hours: { open: 9, close: 20 },
-            links: { payment: "https://pagar.pandda.vip/", guide: "pandda.vip/guia", faq: "pandda.vip/FAQ" }
+            links: { payment: "https://pagar.pandda.vip/" }
         };
 
-        let session = { phone: "5511999999999", status: "IDLE", step: 0, last_interaction: new Date(), temp_data: {} };
+        // Status detalhados para o fluxo de agendamento
+        let session = { phone: "5511999999999", status: "IDLE", flow_step: "", last_interaction: new Date(), temp_data: {} };
 
         function processBotLogic(input) {
             const hour = parseInt(document.getElementById('simulatedHour').value);
             const cleanInput = input.trim();
-            
             session.last_interaction = new Date();
             updateSupabaseView();
-            // Log de Input sem lógica complexa
-            if(session.status !== "IDLE") addLog("USER_INPUT", `Recebido: "${cleanInput}"`);
+
+            // Comando global de cancelamento dentro de fluxos
+            if (session.status !== "IDLE" && session.status !== "MENU" && cleanInput === "0") {
+                session.status = "MENU";
+                session.flow_step = "";
+                session.temp_data = {};
+                botReply("❌ Operação cancelada.");
+                setTimeout(() => botReply(getDynamicText("MENU_MAIN")), 1000);
+                return;
+            }
 
             if (session.status === "IDLE") {
                 botReply(getDynamicText("GREETING"));
@@ -224,7 +180,6 @@
                 setTimeout(() => {
                     botReply(getDynamicText("MENU_MAIN"));
                     session.status = "MENU";
-                    addLog("SUPABASE", `UPDATE sessions SET status = 'MENU' WHERE phone = '${session.phone}'`);
                 }, 1000);
                 return;
             }
@@ -234,15 +189,14 @@
                 case "TEST_FLOW": handleTestFlow(cleanInput, hour); break;
                 case "BUY_FLOW": handleBuyFlow(cleanInput); break;
                 default:
-                    botReply("Erro de estado. Digite 'oi' para reiniciar.");
-                    session.status = "IDLE";
+                    botReply("Erro de estado. Reiniciando...");
+                    resetSystem();
             }
         }
 
         function handleMenu(input) {
             switch (input) {
                 case "1": 
-                    // AGORA USA TEXTO DINÂMICO ANTI-BAN
                     botReply(getDynamicText("HOW_IT_WORKS"));
                     setTimeout(() => botReply(getDynamicText("MENU_MAIN")), 4000); 
                     break;
@@ -253,12 +207,11 @@
                 case "3": startBuyFlow(); break;
                 case "4": startTestFlow(); break;
                 case "5": 
-                    // AGORA USA A FUNÇÃO DE EMBARALHAR FAQ
                     botReply(getFaqText());
                     setTimeout(() => botReply(getDynamicText("MENU_MAIN")), 5000);
                     break;
                 case "6": 
-                    botReply("Um atendente humano foi notificado. Aguarde.");
+                    botReply("Um atendente humano foi notificado.");
                     addLog("DISCORD", "🔔 ALERTA: Solicitação de atendimento humano.");
                     break;
                 default: botReply(getDynamicText("ERROR_DEFAULT")); break;
@@ -267,23 +220,21 @@
 
         function startBuyFlow() {
             session.status = "BUY_FLOW";
-            session.step = 1;
-            botReply(`*Assinatura DualAPP* 🚀\n\n1️⃣ Quero assinar o Plano Base\n2️⃣ Quero adicionar mais telas`);
+            session.flow_step = "SELECT_PLAN";
+            botReply(`*Assinatura DualAPP* 🚀\n\n1️⃣ Quero assinar o Plano Base\n2️⃣ Quero adicionar mais telas\n\n0️⃣ Voltar`);
         }
 
         function handleBuyFlow(input) {
-            if (session.step === 1) {
+            if (session.flow_step === "SELECT_PLAN") {
                 if (input === "1") { generateCheckout(1); } 
                 else if (input === "2") {
-                    session.step = 2;
+                    session.flow_step = "SELECT_SCREENS";
                     botReply("Quantas telas gostaria no total? (Digite 2 ou 3)");
                 } else { botReply("Digite 1 ou 2."); }
-                return;
             }
-            if (session.step === 2) {
-                if (["2", "3"].includes(input)) {
-                    generateCheckout(parseInt(input));
-                } else { botReply("Por favor, digite 2 ou 3."); }
+            else if (session.flow_step === "SELECT_SCREENS") {
+                if (["2", "3"].includes(input)) { generateCheckout(parseInt(input)); } 
+                else { botReply("Por favor, digite 2 ou 3."); }
             }
         }
 
@@ -291,70 +242,167 @@
             const code = Math.random().toString(36).substring(7).toUpperCase();
             const total = CONFIG.prices.base + (CONFIG.prices.extra * (screens - 1));
             botReply(`Gerando link para ${screens} telas (R$${total.toFixed(2)})...`);
-            
-            // LOGS JUNTOS (DB E WEBHOOK)
             addLog("SUPABASE", `INSERT INTO payments (code, amount) VALUES ('${code}', ${total})`);
-            
             setTimeout(() => {
-                botReply(`Pagamento seguro: ${CONFIG.links.payment}${code}\n\nAguardamos a confirmação.`);
-                addLog("MERCADOPAGO", `PreferenceCreated: ${code} | R$${total}`);
+                botReply(`Pagamento seguro: ${CONFIG.links.payment}${code}`);
                 session.status = "IDLE";
+                setTimeout(() => botReply(getDynamicText("MENU_MAIN")), 4000);
             }, 1000);
         }
 
+        // --- FLUXO DE TESTE E AGENDAMENTO (ATUALIZADO V4) ---
+
         function startTestFlow() {
             session.status = "TEST_FLOW";
+            session.flow_step = "ASK_CODE";
             botReply(getDynamicText("TEST_INTRO"));
-            
             setTimeout(() => {
-                const hour = parseInt(document.getElementById('simulatedHour').value);
-                if (hour >= CONFIG.hours.open && hour < CONFIG.hours.close) {
-                    session.step = 1; 
-                    botReply("1️⃣ Iniciar teste agora\n2️⃣ Agendar para outro horário");
-                } else {
-                    session.step = 2; 
-                    session.temp_data.mode = "SCHEDULE";
-                    botReply(`Estamos fora do horário comercial (09h às 20h). Vamos agendar!`);
-                    askReferral();
-                }
+                botReply("Você possui código de indicação? (Digite o código ou 'não')\n\n0️⃣ Cancelar");
             }, 1500);
         }
 
         function handleTestFlow(input, currentHour) {
-            if (session.step === 1) {
-                if (input === "1") { session.temp_data.mode = "NOW"; askReferral(); }
-                else if (input === "2") { session.temp_data.mode = "SCHEDULE"; askReferral(); }
-                else { botReply("Digite 1 ou 2."); }
-                return;
-            }
-            if (session.step === 2) { 
-                if (input.length > 3 && input.toLowerCase() !== 'não') {
+            
+            // 1. Pergunta Código de Indicação
+            if (session.flow_step === "ASK_CODE") {
+                if (input.length > 3 && input.toLowerCase() !== 'não' && input.toLowerCase() !== 'nao') {
                     botReply("✅ Código válido! (24h liberadas)");
                     addLog("SUPABASE", `SELECT * FROM referrals WHERE code = '${input}'`);
                 } else {
                     botReply("Sem código (6h liberadas).");
                 }
-                session.step = 4;
-                botReply("Qual seu nome?");
+                
+                // Verifica horário para decidir fluxo
+                if (currentHour >= CONFIG.hours.open && currentHour < CONFIG.hours.close) {
+                    session.flow_step = "CHOOSE_MODE";
+                    botReply("1️⃣ Iniciar teste agora\n2️⃣ Agendar para outro horário\n\n0️⃣ Cancelar");
+                } else {
+                    // Fora do horário, força agendamento
+                    session.flow_step = "SCHEDULE_TIME"; // Pula direto para perguntar hora
+                    botReply(`Estamos fora do horário comercial. Vamos agendar!`);
+                    showAvailableHours(currentHour);
+                }
                 return;
             }
-            if (session.step === 4) { 
+
+            // 2. Escolha Agora ou Agendar (se dentro do horário)
+            if (session.flow_step === "CHOOSE_MODE") {
+                if (input === "1") {
+                    // Iniciar Agora
+                    session.temp_data.mode = "NOW";
+                    session.flow_step = "ASK_NAME";
+                    botReply("Ok! Iniciando agora. Qual seu nome?");
+                } else if (input === "2") {
+                    // Agendar
+                    session.flow_step = "SCHEDULE_TIME";
+                    showAvailableHours(currentHour);
+                } else {
+                    botReply("Opção inválida. Digite 1 ou 2.");
+                }
+                return;
+            }
+
+            // 3. Agendamento: Escolha do Horário
+            if (session.flow_step === "SCHEDULE_TIME") {
+                // Lógica de Parsing da Hora
+                // Regex para pegar o primeiro número (ex: "10:30" -> "10", "10h" -> "10")
+                const match = input.match(/^(\d+)/);
+                
+                if (!match) {
+                    botReply("⚠️ Formato inválido. Digite apenas a hora (ex: 10, 14, 19).");
+                    return;
+                }
+
+                let selectedHour = parseInt(match[0]);
+                
+                // Validação simples (apenas checa se está num range aceitável de 0 a 23)
+                // Poderíamos validar contra a lista exata, mas vamos ser flexíveis
+                if (selectedHour < 0 || selectedHour > 23) {
+                    botReply("Hora inválida.");
+                    return;
+                }
+
+                session.temp_data.mode = "SCHEDULE";
+                session.temp_data.scheduled_time = selectedHour + "h";
+                
+                session.flow_step = "ASK_NAME";
+                botReply(`Agendado para as ${selectedHour}h. Agora, qual seu nome?`);
+                return;
+            }
+
+            // 4. Pergunta o Nome (Comum para Agora e Agendar)
+            if (session.flow_step === "ASK_NAME") {
                 session.temp_data.name = input;
-                botReply(`Obrigado, ${input}. Solicitação enviada!`);
-                addLog("SUPABASE", `INSERT INTO leads (name, mode) VALUES ('${input}', '${session.temp_data.mode}')`);
-                addLog("DISCORD", `Novo Teste: ${input} | Modo: ${session.temp_data.mode}`);
-                session.status = "IDLE";
-                setTimeout(() => botReply(getDynamicText("MENU_MAIN")), 2000);
+                
+                // Se for "Iniciar Agora", finaliza direto
+                if (session.temp_data.mode === "NOW") {
+                    finalizeTestRequest();
+                } else {
+                    // Se for agendamento, vai para Confirmação
+                    session.flow_step = "CONFIRM_DETAILS";
+                    const resumo = `👤 Nome: ${session.temp_data.name}\n🕒 Horário: ${session.temp_data.scheduled_time}`;
+                    botReply(`📝 *Confirme os dados:*\n\n${resumo}\n\n1️⃣ Confirmar\n2️⃣ Alterar Nome\n3️⃣ Alterar Horário\n0️⃣ Cancelar`);
+                }
+                return;
+            }
+
+            // 5. Confirmação (Apenas Agendamento)
+            if (session.flow_step === "CONFIRM_DETAILS") {
+                if (input === "1") {
+                    finalizeTestRequest();
+                } else if (input === "2") {
+                    session.flow_step = "ASK_NAME";
+                    botReply("Digite o novo nome:");
+                } else if (input === "3") {
+                    session.flow_step = "SCHEDULE_TIME";
+                    showAvailableHours(currentHour);
+                } else {
+                    botReply("Opção inválida. Digite 1, 2, 3 ou 0.");
+                }
             }
         }
 
-        function askReferral() {
-            session.step = 2; 
-            botReply("Você possui código de indicação? (Digite o código ou 'não')");
+        // Helper para mostrar horas disponíveis
+        function showAvailableHours(currentHour) {
+            let startHour = currentHour + 1;
+            let msg = "🕒 *Horários disponíveis:*\n\n";
+            let slots = [];
+
+            // Se já passou das 20h, mostra horário de amanhã
+            if (currentHour >= 20) {
+                msg += "📅 *Amanhã:*\n";
+                startHour = 9;
+            } else {
+                if (startHour < 9) startHour = 9;
+            }
+
+            for (let i = startHour; i <= 20; i++) {
+                slots.push(`${i}h`);
+            }
+
+            msg += slots.join(", ");
+            msg += "\n\nDigite o horário desejado (Ex: 10, 15h, 19:00):";
+            botReply(msg);
         }
 
-        // --- FUNÇÕES DE INTERFACE ---
+        function finalizeTestRequest() {
+            const data = session.temp_data;
+            let msgLog = `Lead: ${data.name} | Modo: ${data.mode}`;
+            if (data.mode === "SCHEDULE") msgLog += ` | Horário: ${data.scheduled_time}`;
 
+            botReply(`✅ Perfeito, ${data.name}! Solicitação confirmada.`);
+            
+            addLog("SUPABASE", `INSERT INTO leads (name, mode, time) VALUES ('${data.name}', '${data.mode}', '${data.scheduled_time || 'NOW'}')`);
+            addLog("DISCORD", `🚀 ${msgLog}`);
+            
+            session.status = "IDLE";
+            session.flow_step = "";
+            session.temp_data = {};
+            
+            setTimeout(() => botReply(getDynamicText("MENU_MAIN")), 2500);
+        }
+
+        // --- SISTEMA BÁSICO ---
         function sendMessage() {
             const input = document.getElementById('userInput');
             const text = input.value;
@@ -380,49 +428,29 @@
             chatBox.scrollTop = chatBox.scrollHeight;
         }
 
-        function updateSupabaseView() {
-            document.getElementById('supabaseView').innerText = JSON.stringify(session, null, 4);
-        }
-
         function addLog(type, message) {
             const view = document.getElementById('logsView');
             const timestamp = new Date().toLocaleTimeString();
-            let colorClass = "text-gray-300";
-            if (type === "SUPABASE") colorClass = "text-green-400";
-            if (type === "DISCORD") colorClass = "text-indigo-400";
-            if (type === "MERCADOPAGO") colorClass = "text-blue-400";
-
-            const logEntry = `<div class="mb-1 border-b border-gray-800 pb-1">
-                <span class="text-[10px] text-gray-500">[${timestamp}]</span> 
-                <span class="font-bold ${colorClass}">${type}</span>: 
-                <span class="text-xs">${message}</span>
-            </div>`;
-            view.innerHTML = logEntry + view.innerHTML;
+            let colorClass = type === "SUPABASE" ? "text-green-400" : (type === "DISCORD" ? "text-indigo-400" : "text-gray-300");
+            view.innerHTML = `<div class="mb-1 border-b border-gray-800 pb-1"><span class="text-[10px] text-gray-500">[${timestamp}]</span> <span class="font-bold ${colorClass}">${type}</span>: <span class="text-xs">${message}</span></div>` + view.innerHTML;
         }
 
+        function updateSupabaseView() { document.getElementById('supabaseView').innerText = JSON.stringify(session, null, 4); }
+        
         function resetSystem() {
-            session = { phone: "5511999999999", status: "IDLE", step: 0, last_interaction: new Date(), temp_data: {} };
+            session = { phone: "5511999999999", status: "IDLE", flow_step: "", last_interaction: new Date(), temp_data: {} };
             document.getElementById('chatBox').innerHTML = '';
             document.getElementById('logsView').innerHTML = '';
-            document.getElementById('textEngineLog').innerHTML = '// Logs resetados...';
-            updateSupabaseView();
             botReply("Sistema reiniciado. Digite 'oi'.");
         }
-
+        
         function toggleDashboard() {
-            if (window.innerWidth >= 768) return;
             const content = document.getElementById('dashboardContent');
-            const icon = document.getElementById('toggleIcon');
-            if (content.classList.contains('hidden')) {
-                content.classList.remove('hidden'); content.classList.add('grid'); icon.classList.add('rotate-180');
-            } else {
-                content.classList.add('hidden'); content.classList.remove('grid'); icon.classList.remove('rotate-180');
-            }
+            content.classList.toggle('hidden'); content.classList.toggle('grid');
         }
 
         // Início
-        botReply("Sistema Online V3. Digite 'oi'.");
-        updateSupabaseView();
+        botReply("Sistema Online V4 (Agendamento Inteligente). Digite 'oi'.");
     </script>
 </body>
 </html>
