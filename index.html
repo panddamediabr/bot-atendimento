@@ -3,452 +3,531 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandda Engine Prototype 🐼</title>
+    <title>Pandda Engine Modular 🐼</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
+        /* --- ESTILOS GERAIS --- */
         :root {
-            --primary: #00a884; /* WhatsApp Green */
+            --primary: #00a884;
             --bg-chat: #e5ddd5;
             --my-msg: #d9fdd3;
             --bot-msg: #ffffff;
             --dark-panel: #202c33;
             --text-panel: #d1d7db;
-            --log-bg: #111b21;
+            --log-bg: #0b141a;
             --log-text: #00ff9d;
         }
-
         * { box-sizing: border-box; margin: 0; padding: 0; }
-        body { font-family: 'Roboto', sans-serif; height: 100vh; display: flex; overflow: hidden; background-color: #f0f2f5; }
+        body { font-family: 'Roboto', sans-serif; height: 100vh; overflow: hidden; background-color: #f0f2f5; }
 
         /* --- LAYOUT GRID --- */
         .app-container {
             display: grid;
-            grid-template-columns: 250px 1fr 350px; /* Desktop Default */
-            width: 100%;
-            height: 100%;
+            grid-template-columns: 260px 1fr 400px; /* Config | Chat | Logs */
+            width: 100%; height: 100%;
         }
 
-        /* --- COLUNA 1: CONFIGURAÇÕES --- */
+        /* --- 1. PAINEL ESQUERDO (CONFIG) --- */
         .settings-panel {
-            background-color: var(--dark-panel);
-            color: var(--text-panel);
-            padding: 20px;
-            overflow-y: auto;
-            border-right: 1px solid #333;
+            background-color: var(--dark-panel); color: var(--text-panel);
+            padding: 20px; border-right: 1px solid #333; overflow-y: auto;
         }
-        .settings-panel h2 { font-size: 1.2rem; margin-bottom: 20px; color: var(--primary); }
+        .settings-panel h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 20px; }
         .form-group { margin-bottom: 15px; }
-        .form-group label { display: block; font-size: 0.85rem; margin-bottom: 5px; }
+        .form-group label { display: block; font-size: 0.8rem; margin-bottom: 5px; color: #8696a0; }
         .form-group input, .form-group select {
-            width: 100%; padding: 8px; border-radius: 5px; border: none; background: #2a3942; color: white;
+            width: 100%; padding: 10px; background: #2a3942; border: none; color: #fff; border-radius: 6px;
         }
-        .btn-save {
-            width: 100%; padding: 10px; background: var(--primary); color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold;
+        .btn-action {
+            width: 100%; padding: 12px; margin-top: 10px; background: var(--primary);
+            color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
+        }
+        .btn-action:hover { opacity: 0.9; }
+        .status-box {
+            margin-top: 30px; padding: 10px; background: #111b21; border-radius: 6px; font-family: monospace; font-size: 0.8rem;
         }
 
-        /* --- COLUNA 2: CHAT (CELULAR) --- */
+        /* --- 2. PAINEL CENTRAL (CHAT) --- */
         .chat-area {
-            background-color: #dfdfdf;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            position: relative;
+            background-color: #d1d7db;
+            display: flex; justify-content: center; align-items: center; position: relative;
         }
         .phone-mockup {
-            width: 100%;
-            max-width: 450px;
-            height: 100%;
-            max-height: 900px;
-            background-color: var(--bg-chat);
-            display: flex;
-            flex-direction: column;
-            border-left: 1px solid #ccc;
-            border-right: 1px solid #ccc;
-            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png'); /* Pattern WhatsApp */
+            width: 100%; max-width: 500px; height: 100%; max-height: 95vh;
+            background-color: var(--bg-chat); display: flex; flex-direction: column;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            background-image: url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
         }
         .chat-header {
-            background-color: var(--primary);
-            padding: 10px 15px;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            background-color: var(--dark-panel); color: white; padding: 10px 15px;
+            display: flex; align-items: center; gap: 10px; border-left: 1px solid #333;
         }
-        .profile-pic { width: 40px; height: 40px; background: #ccc; border-radius: 50%; }
         .chat-messages {
-            flex: 1;
-            padding: 20px;
-            overflow-y: auto;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
+            flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
         }
         .message {
-            max-width: 80%;
-            padding: 8px 12px;
-            border-radius: 7px;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            position: relative;
-            word-wrap: break-word;
-            box-shadow: 0 1px 1px rgba(0,0,0,0.1);
+            max-width: 85%; padding: 8px 12px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4;
+            position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1);
         }
-        .bot { background-color: var(--bot-msg); align-self: flex-start; border-top-left-radius: 0; }
-        .user { background-color: var(--my-msg); align-self: flex-end; border-top-right-radius: 0; }
+        .bot { background-color: var(--bot-msg); align-self: flex-start; border-top-left-radius: 0; color: #111b21; }
+        .user { background-color: var(--my-msg); align-self: flex-end; border-top-right-radius: 0; color: #111b21; }
         .chat-input-area {
-            background: #f0f2f5;
-            padding: 10px;
-            display: flex;
-            gap: 10px;
+            background: var(--dark-panel); padding: 10px; display: flex; gap: 10px;
         }
         .chat-input-area input {
-            flex: 1; padding: 12px; border-radius: 20px; border: none; outline: none;
-        }
-        .btn-send {
-            background: var(--primary); color: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            flex: 1; padding: 12px; border-radius: 20px; border: none; background: #2a3942; color: white; outline: none;
         }
         .typing-indicator {
-            font-size: 0.8rem; color: #666; font-style: italic; padding-left: 15px; margin-bottom: 5px; display: none;
+            font-size: 0.75rem; color: #00a884; font-weight: bold; padding-left: 20px; margin-bottom: 5px; display: none;
         }
 
-        /* --- COLUNA 3: LOGS E DEBUG --- */
+        /* --- 3. PAINEL DIREITO (LOGS) --- */
         .logs-panel {
-            background-color: var(--log-bg);
-            color: var(--log-text);
-            padding: 20px;
-            font-family: 'Courier New', monospace;
-            overflow-y: auto;
-            border-left: 1px solid #333;
+            background-color: var(--log-bg); color: var(--log-text);
+            padding: 15px; font-family: 'Courier New', monospace; overflow-y: auto; border-left: 1px solid #333;
         }
-        .log-entry { margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
-        .log-title { color: #fff; font-weight: bold; margin-bottom: 5px; }
-        .log-json { font-size: 0.8rem; opacity: 0.8; white-space: pre-wrap; }
-        .badge { display: inline-block; padding: 2px 5px; font-size: 0.7rem; border-radius: 3px; color: black; font-weight: bold; margin-right: 5px;}
-        .badge-db { background: #3ecf8e; } /* Supabase Color */
-        .badge-hook { background: #5865F2; } /* Discord Color */
-        .badge-engine { background: #ff9900; } /* Engine Logic */
+        .log-entry {
+            margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; animation: fadeIn 0.3s;
+        }
+        .log-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .log-tag { font-weight: bold; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; color: #000; text-transform: uppercase; }
+        .tag-engine { background: #ffcc00; }
+        .tag-db { background: #00ccff; }
+        .tag-webhook { background: #ff5555; }
+        .tag-system { background: #cccccc; }
+        
+        .log-content { font-size: 0.8rem; opacity: 0.9; white-space: pre-wrap; word-break: break-all; }
+        .highlight { color: #fff; font-weight: bold; }
 
-        /* --- RESPONSIVIDADE --- */
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- RESPONSIVIDADE MOBILE --- */
+        .mobile-toggle { display: none; position: fixed; top: 10px; right: 10px; z-index: 1000; background: var(--primary); color: white; border: none; padding: 8px; border-radius: 50%; }
+
         @media (max-width: 1024px) {
-            .app-container { grid-template-columns: 0px 1fr 300px; } /* Esconde Config */
-            .settings-panel { display: none; }
-        }
-
-        @media (max-width: 768px) {
-            .app-container { grid-template-columns: 1fr; } /* Só Chat */
-            .settings-panel, .logs-panel { display: none; }
-            .phone-mockup { max-width: 100%; border: none; }
+            .app-container { grid-template-columns: 0px 1fr 0px; } /* Mobile Mode Default for Tablets too */
+            .settings-panel, .logs-panel { display: none; position: absolute; z-index: 100; width: 80%; height: 100%; top: 0; }
+            .settings-panel { left: 0; border-right: 2px solid #00a884; }
             
-            /* Botão mobile para ver configs */
-            .mobile-menu-btn {
-                display: block; position: fixed; top: 10px; right: 10px; z-index: 100;
-            }
+            /* Classes para abrir menus no mobile */
+            .app-container.show-config .settings-panel { display: block; }
+            .mobile-toggle { display: block; }
         }
     </style>
 </head>
 <body>
 
-    <div class="app-container">
-        
-        <div class="settings-panel">
-            <h2>⚙️ Configurações Pandda</h2>
-            <div class="form-group">
-                <label>Status Admin:</label>
-                <select id="adminStatus">
-                    <option value="online">Online (Bot Ativo)</option>
-                    <option value="maintenance">Manutenção</option>
-                </select>
-            </div>
-            <div class="form-group">
-                <label>Horário Início:</label>
-                <input type="time" id="timeStart" value="09:00">
-            </div>
-            <div class="form-group">
-                <label>Horário Fim:</label>
-                <input type="time" id="timeEnd" value="20:00">
-            </div>
-            <div class="form-group">
-                <label>Códigos Válidos (CSV):</label>
-                <input type="text" id="validCodes" value="PANDDA10,VIP2024,TESTE01">
-            </div>
-            <button class="btn-save" onclick="resetChat()">Reiniciar Chat</button>
-            
-            <div style="margin-top: 30px; font-size: 0.8rem; color: #888;">
-                <p>Status Atual:</p>
-                <p id="currentStateDisplay">MÓDULO: MENU</p>
-            </div>
-        </div>
+    <button class="mobile-toggle" onclick="toggleConfig()">⚙️</button>
 
-        <div class="chat-area">
+    <div class="app-container" id="appContainer">
+        
+        <aside class="settings-panel">
+            <h2>⚙️ Variáveis Pandda</h2>
+            <div class="form-group">
+                <label>Status do Sistema</label>
+                <select id="sysStatus"><option>Online</option><option>Manutenção</option></select>
+            </div>
+            <div class="form-group">
+                <label>Horário Atendimento (Teste)</label>
+                <div style="display: flex; gap: 5px;">
+                    <input type="time" id="hStart" value="09:00">
+                    <input type="time" id="hEnd" value="20:00">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Códigos Válidos (Separar por vírgula)</label>
+                <input type="text" id="validCodes" value="PANDDA10,VIP2024,TESTE">
+            </div>
+            
+            <button class="btn-action" onclick="restartChat()">🔄 Reiniciar Chat</button>
+            <button class="btn-action" style="background: #333; margin-top: 5px;" onclick="clearLogs()">🗑️ Limpar Logs</button>
+
+            <div class="status-box">
+                <div>ESTADO: <span id="displayState" style="color: #00a884">INICIO</span></div>
+                <div>SESSÃO ID: <span id="displaySession">...</span></div>
+            </div>
+        </aside>
+
+        <main class="chat-area">
             <div class="phone-mockup">
                 <div class="chat-header">
-                    <div class="profile-pic">🐼</div>
+                    <div style="width: 35px; height: 35px; background: #fff; border-radius: 50%; display: grid; place-items: center; font-size: 20px;">🐼</div>
                     <div>
-                        <div style="font-weight: bold;">Pandda Atendimento</div>
-                        <div style="font-size: 0.8rem;">Online</div>
+                        <div style="font-weight: 500;">Pandda Atendimento</div>
+                        <div style="font-size: 0.75rem; opacity: 0.8;">Online agora</div>
                     </div>
                 </div>
                 
-                <div class="chat-messages" id="chatMessages">
-                    <div class="message bot">
-                        Olá! Bem-vindo ao Pandda. Digite "Oi" para começar.
+                <div class="chat-messages" id="chatBox">
                     </div>
-                </div>
 
-                <div class="typing-indicator" id="typingIndicator">Pandda digitando...</div>
+                <div class="typing-indicator" id="typingIndicator">digitando...</div>
 
                 <div class="chat-input-area">
-                    <input type="text" id="userInput" placeholder="Digite uma mensagem..." onkeypress="handleEnter(event)">
-                    <button class="btn-send" onclick="sendMessage()">➤</button>
+                    <input type="text" id="userInput" placeholder="Mensagem..." onkeypress="handleEnter(event)">
+                    <button onclick="sendUserMessage()" style="background:none; border:none; font-size: 1.2rem; cursor: pointer;">➤</button>
                 </div>
             </div>
-        </div>
+        </main>
 
-        <div class="logs-panel" id="logsPanel">
+        <aside class="logs-panel" id="logsPanel">
             <div class="log-entry">
-                <div class="log-title">🖥️ Console de Logs</div>
-                <div class="log-json">Aguardando interação...</div>
+                <div class="log-header"><span class="log-tag tag-system">SYSTEM</span> <span style="font-size: 0.7rem">NOW</span></div>
+                <div class="log-content">Sistema Iniciado...</div>
             </div>
-        </div>
+        </aside>
 
     </div>
 
     <script>
-        // --- 1. CONFIGURAÇÃO & ESTADO ---
-        let session = {
-            step: 'start', // start, menu, plans, sign_code, sign_adult, test_guide, test_schedule, test_name, test_code, test_adult
-            tempData: {} // Armazena dados temporários (nome, horario, etc)
-        };
-
-        // --- 2. ENGINE DE SPINTAX E FRASES ---
+        /* =================================================================
+           CORE ENGINE (Lógica Base)
+           ================================================================= */
         
-        // Função auxiliar para selecionar aleatório de array
-        const randomChoice = (arr) => arr[Math.floor(Math.random() * arr.length)];
-
-        // Função Spintax: Transforma "{Olá|Oi|E aí}" em uma opção
-        const processSpintax = (text) => {
-            return text.replace(/\{([^{}]+)\}/g, (match, content) => {
-                const choices = content.split('|');
-                return randomChoice(choices);
-            });
+        const Session = {
+            id: Math.random().toString(36).substr(2, 5).toUpperCase(),
+            state: 'START', // START, MENU, HOW_IT_WORKS, PLANS, SIGNING_*, TESTING_*
+            data: {} // Armazena inputs temporários
         };
 
-        // Banco de Frases (Templates)
-        const templates = {
-            greeting: "{Olá|Oi|Tudo bem?}, {Bom dia|Boa tarde|Boa noite}! Como {podemos te ajudar|posso ser útil|está você}? 🐼",
-            menu: "Digite uma opção:\n1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assinar\n4️⃣ Testar\n5️⃣ Dúvidas\n6️⃣ Falar com atendente",
+        // Atualiza a UI com o estado atual
+        function updateStatusUI() {
+            document.getElementById('displayState').innerText = Session.state;
+            document.getElementById('displaySession').innerText = Session.id;
+        }
+
+        // Sistema de Logs (Agora funciona!)
+        function logger(tag, title, detail) {
+            const panel = document.getElementById('logsPanel');
+            const time = new Date().toLocaleTimeString().split(' ')[0];
             
-            how_it_works: [ // Lista para ser embaralhada
-                "{Funciona|Roda} 100% via internet, sem precisar de {antenas|cabos}. 🌐",
-                "Basta {instalar|baixar} nosso app no seu dispositivo.",
-                "Nós fornecemos seus dados de {acesso|login} (usuário e senha). 🔑",
-                "Compatível com Smart TV, Celular, TV Box e PC. 📺",
-                "Sistema **DualAPP**: dois aplicativos para {maior estabilidade|não travar}. 🚀",
-                "É só {logar|entrar} e {assistir|curtir}!"
+            let tagClass = 'tag-system';
+            if(tag === 'ENGINE') tagClass = 'tag-engine';
+            if(tag === 'DB') tagClass = 'tag-db';
+            if(tag === 'WEBHOOK') tagClass = 'tag-webhook';
+
+            // Formata o detalhe para JSON bonito ou texto simples
+            let content = detail;
+            if (typeof detail === 'object') {
+                content = JSON.stringify(detail, null, 2);
+            }
+
+            const html = `
+                <div class="log-entry">
+                    <div class="log-header">
+                        <span class="log-tag ${tagClass}">${tag}</span>
+                        <span style="font-size: 0.65rem; opacity: 0.5;">${time}</span>
+                    </div>
+                    <div style="font-weight: bold; margin-bottom: 2px; color: #fff;">${title}</div>
+                    <div class="log-content">${content}</div>
+                </div>
+            `;
+            
+            panel.insertAdjacentHTML('afterbegin', html);
+        }
+
+        /* =================================================================
+           PROCESSADORES DE TEXTO (Spintax e Shuffle)
+           ================================================================= */
+
+        function processSpintax(text) {
+            // Regex para capturar {a|b|c}
+            const processed = text.replace(/\{([^{}]+)\}/g, (match, group) => {
+                const options = group.split('|');
+                const selected = options[Math.floor(Math.random() * options.length)];
+                return selected;
+            });
+
+            // LOG IMPORTANTE: Mostra a montagem da frase
+            if (text.includes('{')) {
+                logger('ENGINE', 'Spintax Processado', {
+                    template: text,
+                    generated: processed
+                });
+            }
+            return processed;
+        }
+
+        function shuffleMessages(array) {
+            // Algoritmo Fisher-Yates para embaralhar
+            let arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            logger('ENGINE', 'Ordem Embaralhada', { count: arr.length, newOrder: 'Randomized' });
+            return arr;
+        }
+
+        /* =================================================================
+           FLUXOS SEPARADOS (MODULARIDADE)
+           Cada função cuida de uma parte da conversa.
+           ================================================================= */
+
+        // --- FLUXO 1: BOAS VINDAS E MENU ---
+        const FlowMenu = {
+            getGreeting: () => {
+                const template = "{Olá|Oi|Tudo bem}, {Bom dia|Boa tarde|Boa noite}! Bem-vindo ao Pandda 🐼. Como {podemos ajudar|posso ser útil} hoje?";
+                return [template, "1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assinar\n4️⃣ Testar\n5️⃣ Dúvidas\n6️⃣ Falar com atendente"];
+            },
+            
+            handleInput: (input) => {
+                // Roteador do Menu Principal
+                switch(input) {
+                    case '1': return FlowHowItWorks.start();
+                    case '2': return FlowPlans.start();
+                    case '3': return FlowSigning.start();
+                    case '4': return FlowTesting.start();
+                    case '5': return FlowFAQ.start();
+                    case '6': return FlowSupport.start();
+                    default: return { text: ["Opção inválida. Digite de 1 a 6."], newState: 'MENU' };
+                }
+            }
+        };
+
+        // --- FLUXO 2: COMO FUNCIONA ---
+        const FlowHowItWorks = {
+            templates: [
+                "Funciona 100% via internet 🌐",
+                "Sem {cabos|antenas|instalação física} necessária.",
+                "Compatível com Smart TV, TV Box e Celular 📱",
+                "Temos sistema **DualAPP**: 2 apps para {não travar|estabilidade máxima} 🚀",
+                "Fornecemos usuário e senha para você logar 🔑"
             ],
             
-            plans: "Temos o plano ideal:\n\n1️⃣ **Plano Base (1 tela):** R$ 34,90\n2️⃣ **Plano DualAPP (2 telas):** R$ 52,80\n3️⃣ **Plano DualAPP (3 telas):** R$ 70,70\n\n4️⃣ ✍️ **Assinar Agora**\n0️⃣ Voltar",
-            
-            faq: [ // Lista de FAQs
-                "**Onde usar?** 🌍 Em qualquer lugar com internet.",
-                "**Aparelhos?** 📺 Smart TV, Box, Stick, Celular, PC.",
-                "**Pagamento?** 💳 PIX ou Cartão de Crédito.",
-                "**Fidelidade?** ✍️ Não, pague apenas quando usar."
-            ]
+            start: () => {
+                // Embaralha as frases do meio
+                const shuffled = shuffleMessages(FlowHowItWorks.templates).map(t => processSpintax(t));
+                const finalMsg = ["Veja como é simples:", ...shuffled, "Deseja ver os planos? (Digite 0 p/ Menu)"];
+                return { text: finalMsg, newState: 'MENU' }; // Mantém no menu, apenas informa
+            }
         };
 
-        // --- 3. LÓGICA DE NEGÓCIO (Backend Simulado) ---
-
-        function addLog(type, title, data) {
-            const panel = document.getElementById('logsPanel');
-            const entry = document.createElement('div');
-            entry.className = 'log-entry';
-            
-            let badgeClass = 'badge-engine';
-            if(type === 'DB') badgeClass = 'badge-db';
-            if(type === 'WEBHOOK') badgeClass = 'badge-hook';
-
-            entry.innerHTML = `
-                <div class="log-title"><span class="badge ${badgeClass}">${type}</span> ${title}</div>
-                <div class="log-json">${JSON.stringify(data, null, 2)}</div>
-            `;
-            panel.insertBefore(entry, panel.firstChild); // Adiciona no topo
-        }
-
-        function shuffleArray(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+        // --- FLUXO 3: PLANOS ---
+        const FlowPlans = {
+            start: () => {
+                const txt = "Confira nossos planos DualAPP:\n\n1️⃣ **Base (1 tela):** R$ 34,90\n2️⃣ **Dual (2 telas):** R$ 52,80\n3️⃣ **Família (3 telas):** R$ 70,70\n\nDigite **3** para Assinar ou **0** para Voltar.";
+                return { text: [txt], newState: 'MENU' };
             }
-            return array;
-        }
+        };
 
-        // Simula verificação no Supabase
-        function checkCodeSupabase(code) {
-            const validCodes = document.getElementById('validCodes').value.split(',');
-            const isValid = validCodes.includes(code.toUpperCase().trim());
+        // --- FLUXO 4: ASSINATURA ---
+        const FlowSigning = {
+            start: () => {
+                return { 
+                    text: ["Qual plano deseja? (Digite 1, 2 ou 3)"], 
+                    newState: 'SIGN_PLAN' 
+                };
+            },
             
-            addLog('DB', 'SELECT * FROM codigos WHERE code = ?', {
-                input: code,
-                found: isValid
-            });
-            return isValid;
-        }
-
-        // Simula Webhook Mercado Pago/Discord
-        function triggerWebhook(type, payload) {
-            addLog('WEBHOOK', `Disparo para Discord: #${type}`, payload);
-            if(type === 'pagamentos') {
-                addLog('WEBHOOK', 'Mercado Pago: Link Gerado', { url: `pagar.pandda.vip?id=${Date.now()}` });
-            }
-        }
-
-        // --- 4. FLUXO DE CONVERSA ---
-
-        async function processBotResponse(input) {
-            const cleanInput = input.trim().toLowerCase();
-            let responseText = [];
-            let nextStep = session.step;
-
-            // --- Lógica de Navegação ---
-            
-            // MENU PRINCIPAL
-            if (session.step === 'menu') {
-                if (cleanInput === '1') { // Como Funciona
-                    addLog('ENGINE', 'Shuffle & Spintax', { module: 'HowItWorks' });
-                    const intro = "Veja como é simples:";
-                    let shuffledTips = shuffleArray([...templates.how_it_works]).map(t => processSpintax(t));
-                    responseText = [intro, ...shuffledTips];
-                    
-                } else if (cleanInput === '2') { // Planos
-                    responseText = [processSpintax(templates.plans)];
-                    
-                } else if (cleanInput === '3' || cleanInput === '4' && session.lastMenu === 'plans') { // Assinar
-                    nextStep = 'sign_plan';
-                    responseText = ["Qual plano deseja? (Digite 1, 2 ou 3)"];
-                    
-                } else if (cleanInput === '4') { // Testar
-                    nextStep = 'test_guide';
-                    responseText = ["Para testar, instale o app: pandda.vip/guia", "Digite 1 para Testar Agora ou 2 para Agendar."];
-                    
-                } else if (cleanInput === '5') { // Dúvidas
-                    addLog('ENGINE', 'Shuffle FAQ', { module: 'FAQ' });
-                    let faqs = shuffleArray([...templates.faq]);
-                    responseText = ["Aqui estão as dúvidas comuns:", ...faqs, "Mais em: pandda.vip/FAQ"];
+            handle: (input, currentState) => {
+                // Etapa 1: Escolha do Plano
+                if (currentState === 'SIGN_PLAN') {
+                    Session.data.plan = input; // Salva
+                    return { 
+                        text: ["Tem código de indicação? Digite o código ou digite **Não**."], 
+                        newState: 'SIGN_CODE' 
+                    };
                 }
-            }
-            
-            // FLUXO ASSINATURA
-            else if (session.step === 'sign_plan') {
-                session.tempData.plan = cleanInput;
-                nextStep = 'sign_code';
-                responseText = ["Possui código de indicação? Se sim, digite. Se não, digite 'não'."];
-            }
-            else if (session.step === 'sign_code') {
-                if (['nao', 'não', 'n', '"não"'].some(v => cleanInput.includes(v))) {
-                    session.tempData.code = null;
-                    nextStep = 'sign_adult';
-                    responseText = ["Entendido. Deseja liberar canais Adultos? (Sim/Não)"];
-                } else {
-                    const isValid = checkCodeSupabase(cleanInput);
-                    if (isValid) {
-                        session.tempData.code = cleanInput;
-                        nextStep = 'sign_adult';
-                        responseText = ["Código válido! ✅ Deseja liberar canais Adultos?"];
+                
+                // Etapa 2: Validação de Código
+                if (currentState === 'SIGN_CODE') {
+                    const clean = input.toLowerCase().replace(/['"]/g, '');
+                    if (['nao', 'não', 'n'].includes(clean)) {
+                        Session.data.code = null;
+                        return { text: ["Ok, sem código. Deseja canais Adultos? (Sim/Não)"], newState: 'SIGN_ADULT' };
                     } else {
-                        responseText = ["Código inválido. ❌ Tente novamente ou digite 'não'."];
+                        // Simula consulta DB
+                        const validCodes = document.getElementById('validCodes').value.split(',').map(c => c.trim().toUpperCase());
+                        const isValid = validCodes.includes(input.toUpperCase());
+                        logger('DB', 'SELECT * FROM codigos', { input: input, found: isValid });
+
+                        if (isValid) {
+                            Session.data.code = input.toUpperCase();
+                            return { text: ["Código Válido! ✅ Ganhou bônus. Deseja Adultos? (Sim/Não)"], newState: 'SIGN_ADULT' };
+                        } else {
+                            return { text: ["Código inválido ❌. Tente novamente ou digite 'Não'."], newState: 'SIGN_CODE' };
+                        }
                     }
                 }
+
+                // Etapa 3: Adulto e Finalização
+                if (currentState === 'SIGN_ADULT') {
+                    Session.data.adult = input;
+                    
+                    // Simula geração de link
+                    const paymentUrl = `pagar.pandda.vip?ref=${Session.id}`;
+                    logger('WEBHOOK', 'Pagamento Gerado', { plan: Session.data.plan, url: paymentUrl });
+                    
+                    const resume = `📝 *Resumo do Pedido*\nPlano: ${Session.data.plan} telas\nCódigo: ${Session.data.code || 'N/A'}\nAdulto: ${input}\n\n🔗 Link: ${paymentUrl}`;
+                    return { text: [resume, "Aguardando confirmação..."], newState: 'MENU' };
+                }
             }
-            else if (session.step === 'sign_adult') {
-                session.tempData.adult = cleanInput;
-                nextStep = 'menu'; // Fim do fluxo
-                
-                // Gera Link e Dispara Webhooks
-                triggerWebhook('pagamentos', session.tempData);
-                
-                responseText = [
-                    "📝 Resumo do Pedido:",
-                    `Plano: ${session.tempData.plan}`,
-                    `Código: ${session.tempData.code || 'Nenhum'}`,
-                    `Adulto: ${cleanInput}`,
-                    "🔗 Link de pagamento: pagar.pandda.vip (Simulado)",
-                    "Aguardando confirmação..."
-                ];
-                
-                addLog('DB', 'UPDATE sessao SET status = finished', session.tempData);
-                session.tempData = {}; // Limpa
+        };
+
+        // --- FLUXO 5: TESTE ---
+        const FlowTesting = {
+            start: () => {
+                return { text: ["Para testar, instale o app: pandda.vip/guia\n\nDigite **1** p/ Testar Agora ou **2** p/ Agendar."], newState: 'TEST_OPTION' };
+            },
+            
+            handle: (input, state) => {
+                if (state === 'TEST_OPTION') {
+                    if (input === '1') {
+                        return { text: ["Ok! Qual o seu Nome?"], newState: 'TEST_NAME' };
+                    } else {
+                        return { text: ["Horários: 09h às 20h. Qual horário prefere?"], newState: 'TEST_SCHEDULE' };
+                    }
+                }
+                if (state === 'TEST_SCHEDULE') {
+                    Session.data.schedule = input;
+                    return { text: ["Certo. Qual seu nome?"], newState: 'TEST_NAME' };
+                }
+                if (state === 'TEST_NAME') {
+                    Session.data.name = input;
+                    // WEBHOOK DISCORD
+                    logger('WEBHOOK', 'Solicitação Teste', Session.data);
+                    return { text: [`Obrigado ${input}! Gerando seu teste...`, "Envie **0** para voltar ao menu."], newState: 'MENU' };
+                }
+            }
+        };
+
+        // --- FLUXO 6: FAQ ---
+        const FlowFAQ = {
+            items: [
+                "**Onde usar?** 🌍 Smart TV, Celular, PC.",
+                "**Pagamento?** 💳 PIX e Cartão.",
+                "**É assinatura?** ✍️ Não, é pré-pago sem fidelidade."
+            ],
+            start: () => {
+                const shuffled = shuffleMessages(FlowFAQ.items);
+                return { text: ["Dúvidas Frequentes:", ...shuffled, "Mais em: pandda.vip/FAQ"], newState: 'MENU' };
+            }
+        };
+
+        const FlowSupport = {
+            start: () => {
+                logger('WEBHOOK', 'Chamar Humano', { session: Session.id });
+                return { text: ["Chamando um atendente... 👩‍💻 Aguarde."], newState: 'MENU' };
+            }
+        };
+
+        /* =================================================================
+           CONTROLADOR PRINCIPAL (ROUTER)
+           ================================================================= */
+
+        async function processMessage(input) {
+            const cleanInput = input.trim();
+            let response = { text: [], newState: Session.state };
+
+            // Reset Global
+            if (cleanInput === '0') {
+                Session.state = 'MENU';
+                Session.data = {};
+                sendBotMessages(FlowMenu.getGreeting());
+                updateStatusUI();
+                return;
             }
 
-            // GATILHO INICIAL
-            else if (session.step === 'start') {
-                responseText = [processSpintax(templates.greeting), templates.menu];
-                nextStep = 'menu';
+            // --- ROTEAMENTO DE ESTADOS ---
+            
+            if (Session.state === 'START') {
+                // Qualquer input no inicio leva ao menu
+                const res = FlowMenu.getGreeting();
+                response = { text: res, newState: 'MENU' };
+            }
+            else if (Session.state === 'MENU') {
+                response = FlowMenu.handleInput(cleanInput);
+            }
+            else if (Session.state.startsWith('SIGN')) {
+                response = FlowSigning.handle(cleanInput, Session.state);
+            }
+            else if (Session.state.startsWith('TEST')) {
+                response = FlowTesting.handle(cleanInput, Session.state);
+            }
+            // Fallback
+            else {
+                response = { text: ["Não entendi. Digite 0 para voltar."], newState: Session.state };
             }
 
-            // Atualiza Estado Visual
-            session.step = nextStep;
-            document.getElementById('currentStateDisplay').innerText = `ETAPA: ${nextStep.toUpperCase()}`;
+            // Atualiza Sessão e Envia
+            if (response && response.newState) Session.state = response.newState;
+            updateStatusUI();
 
-            // Envia Respostas com Delay
-            for (let msg of responseText) {
-                await sendBotMessage(msg);
+            if (response && response.text) {
+                await sendBotMessages(response.text);
             }
         }
 
-        // --- 5. INTERFACE (UI) ---
+        /* =================================================================
+           UI & UTILITÁRIOS DE MENSAGEM
+           ================================================================= */
 
-        function appendMessage(text, sender) {
-            const chatBox = document.getElementById('chatMessages');
+        function addMessageBubble(text, sender) {
+            const box = document.getElementById('chatBox');
             const div = document.createElement('div');
             div.className = `message ${sender}`;
-            // Converte quebras de linha em <br> e markdown básico bold
+            // Markdown básico
             div.innerHTML = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-            chatBox.appendChild(div);
-            chatBox.scrollTop = chatBox.scrollHeight;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
         }
 
-        async function sendBotMessage(text) {
+        async function sendBotMessages(messagesArray) {
             const indicator = document.getElementById('typingIndicator');
-            indicator.style.display = 'block';
             
-            // Cálculo de Delay Humano: (Caracteres / 20) * 1000ms + Delay fixo
-            const delay = Math.min((text.length / 20) * 1000 + 1000, 5000); 
-            
-            return new Promise(resolve => {
-                setTimeout(() => {
-                    indicator.style.display = 'none';
-                    appendMessage(text, 'bot');
-                    resolve();
-                }, delay);
-            });
+            for (let rawText of messagesArray) {
+                // 1. Processa Spintax
+                const finalTexture = processSpintax(rawText);
+
+                // 2. Calcula Delay Humano
+                indicator.style.display = 'block';
+                const charCount = finalTexture.length;
+                const delay = Math.min((charCount / 20) * 1000 + 800, 4000); // Min 800ms, Max 4s
+                
+                await new Promise(r => setTimeout(r, delay));
+                
+                indicator.style.display = 'none';
+                addMessageBubble(finalTexture, 'bot');
+                
+                // Pequena pausa entre mensagens múltiplas
+                await new Promise(r => setTimeout(r, 500));
+            }
         }
 
-        function sendMessage() {
+        function sendUserMessage() {
             const input = document.getElementById('userInput');
             const text = input.value;
-            if (!text) return;
-
-            appendMessage(text, 'user');
+            if(!text) return;
+            
+            addMessageBubble(text, 'user');
             input.value = '';
-
-            // Processa resposta
-            processBotResponse(text);
+            
+            processMessage(text);
         }
 
-        function handleEnter(e) {
-            if (e.key === 'Enter') sendMessage();
+        function handleEnter(e) { if(e.key === 'Enter') sendUserMessage(); }
+
+        function restartChat() {
+            document.getElementById('chatBox').innerHTML = '';
+            Session.state = 'START';
+            Session.data = {};
+            updateStatusUI();
+            addMessageBubble("Olá! Digite algo para começar.", 'bot');
+            logger('SYSTEM', 'Chat Reiniciado', {});
         }
 
-        function resetChat() {
-            document.getElementById('chatMessages').innerHTML = '';
-            session.step = 'start';
-            session.tempData = {};
-            addLog('SYSTEM', 'Chat Reiniciado', {});
+        function clearLogs() {
+            document.getElementById('logsPanel').innerHTML = '';
         }
 
-        // Inicializa com log
-        addLog('SYSTEM', 'Engine Pandda Iniciada', { version: '1.0.0-Prototype' });
+        function toggleConfig() {
+            document.getElementById('appContainer').classList.toggle('show-config');
+        }
+
+        // Init
+        updateStatusUI();
+        addMessageBubble("Olá! Digite 'Oi' para começar.", 'bot');
 
     </script>
 </body>
