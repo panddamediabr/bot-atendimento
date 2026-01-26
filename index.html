@@ -3,33 +3,33 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pandda Engine Modular 🐼</title>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <title>Pandda Engine Pro 🐼</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Fira+Code:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        /* --- ESTILOS GERAIS --- */
+        /* --- VARIAVEIS GERAIS --- */
         :root {
             --primary: #00a884;
             --bg-chat: #e5ddd5;
-            --my-msg: #d9fdd3;
-            --bot-msg: #ffffff;
             --dark-panel: #202c33;
-            --text-panel: #d1d7db;
-            --log-bg: #0b141a;
-            --log-text: #00ff9d;
+            --log-bg: #1e1e1e; /* VS Code Dark Style */
+            --log-text: #d4d4d4;
+            --key-color: #9cdcfe;
+            --string-color: #ce9178;
+            --bool-color: #569cd6;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body { font-family: 'Roboto', sans-serif; height: 100vh; overflow: hidden; background-color: #f0f2f5; }
 
-        /* --- LAYOUT GRID --- */
+        /* --- LAYOUT GRID (Logs Aumentados) --- */
         .app-container {
             display: grid;
-            grid-template-columns: 260px 1fr 400px; /* Config | Chat | Logs */
+            grid-template-columns: 260px 1fr 480px; /* <--- LOGS MAIS LARGOS AQUI */
             width: 100%; height: 100%;
         }
 
         /* --- 1. PAINEL ESQUERDO (CONFIG) --- */
         .settings-panel {
-            background-color: var(--dark-panel); color: var(--text-panel);
+            background-color: var(--dark-panel); color: #d1d7db;
             padding: 20px; border-right: 1px solid #333; overflow-y: auto;
         }
         .settings-panel h2 { color: var(--primary); font-size: 1.2rem; margin-bottom: 20px; }
@@ -42,7 +42,6 @@
             width: 100%; padding: 12px; margin-top: 10px; background: var(--primary);
             color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: bold;
         }
-        .btn-action:hover { opacity: 0.9; }
         .status-box {
             margin-top: 30px; padding: 10px; background: #111b21; border-radius: 6px; font-family: monospace; font-size: 0.8rem;
         }
@@ -60,7 +59,7 @@
         }
         .chat-header {
             background-color: var(--dark-panel); color: white; padding: 10px 15px;
-            display: flex; align-items: center; gap: 10px; border-left: 1px solid #333;
+            display: flex; align-items: center; gap: 10px;
         }
         .chat-messages {
             flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
@@ -69,8 +68,8 @@
             max-width: 85%; padding: 8px 12px; border-radius: 8px; font-size: 0.95rem; line-height: 1.4;
             position: relative; box-shadow: 0 1px 1px rgba(0,0,0,0.1);
         }
-        .bot { background-color: var(--bot-msg); align-self: flex-start; border-top-left-radius: 0; color: #111b21; }
-        .user { background-color: var(--my-msg); align-self: flex-end; border-top-right-radius: 0; color: #111b21; }
+        .bot { background-color: #fff; align-self: flex-start; border-top-left-radius: 0; color: #111b21; }
+        .user { background-color: var(--primary); color: white; align-self: flex-end; border-top-right-radius: 0; }
         .chat-input-area {
             background: var(--dark-panel); padding: 10px; display: flex; gap: 10px;
         }
@@ -81,36 +80,60 @@
             font-size: 0.75rem; color: #00a884; font-weight: bold; padding-left: 20px; margin-bottom: 5px; display: none;
         }
 
-        /* --- 3. PAINEL DIREITO (LOGS) --- */
+        /* --- 3. PAINEL DIREITO (LOGS PRO) --- */
         .logs-panel {
-            background-color: var(--log-bg); color: var(--log-text);
-            padding: 15px; font-family: 'Courier New', monospace; overflow-y: auto; border-left: 1px solid #333;
+            background-color: var(--log-bg); 
+            color: var(--log-text);
+            padding: 10px; 
+            font-family: 'Fira Code', 'Courier New', monospace; /* Fonte Monospaced Melhor */
+            overflow-y: auto; 
+            border-left: 1px solid #333;
+            font-size: 0.85rem;
         }
         .log-entry {
-            margin-bottom: 12px; border-bottom: 1px solid #333; padding-bottom: 8px; animation: fadeIn 0.3s;
+            background: #252526;
+            margin-bottom: 8px; 
+            border-left: 3px solid transparent; 
+            padding: 8px;
+            border-radius: 4px;
         }
-        .log-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
-        .log-tag { font-weight: bold; font-size: 0.7rem; padding: 2px 6px; border-radius: 4px; color: #000; text-transform: uppercase; }
-        .tag-engine { background: #ffcc00; }
-        .tag-db { background: #00ccff; }
-        .tag-webhook { background: #ff5555; }
-        .tag-system { background: #cccccc; }
         
-        .log-content { font-size: 0.8rem; opacity: 0.9; white-space: pre-wrap; word-break: break-all; }
-        .highlight { color: #fff; font-weight: bold; }
+        /* Cores da Borda Lateral por Tipo */
+        .border-ENGINE { border-left-color: #ffd700; }
+        .border-SUPABASE { border-left-color: #007acc; }
+        .border-DISCORD { border-left-color: #5865F2; }
+        .border-SYSTEM { border-left-color: #666; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+        .log-header { 
+            display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; border-bottom: 1px solid #333; padding-bottom: 4px;
+        }
+        .log-tag { 
+            font-weight: 600; font-size: 0.7rem; padding: 2px 6px; border-radius: 3px; color: #000; letter-spacing: 0.5px;
+        }
+        /* Cores das Labels */
+        .tag-ENGINE { background: #ffd700; color: #000; }
+        .tag-SUPABASE { background: #007acc; color: #fff; }
+        .tag-DISCORD { background: #5865F2; color: #fff; }
+        .tag-SYSTEM { background: #444; color: #ccc; }
+
+        /* JSON Beautifier */
+        .log-data { display: block; white-space: pre-wrap; word-break: break-all; margin-top: 5px; line-height: 1.4; }
+        .json-key { color: var(--key-color); }
+        .json-string { color: var(--string-color); }
+        .json-bool { color: var(--bool-color); font-weight: bold; }
+        .json-null { color: #569cd6; font-style: italic; }
 
         /* --- RESPONSIVIDADE MOBILE --- */
         .mobile-toggle { display: none; position: fixed; top: 10px; right: 10px; z-index: 1000; background: var(--primary); color: white; border: none; padding: 8px; border-radius: 50%; }
 
         @media (max-width: 1024px) {
-            .app-container { grid-template-columns: 0px 1fr 0px; } /* Mobile Mode Default for Tablets too */
-            .settings-panel, .logs-panel { display: none; position: absolute; z-index: 100; width: 80%; height: 100%; top: 0; }
-            .settings-panel { left: 0; border-right: 2px solid #00a884; }
+            .app-container { grid-template-columns: 0px 1fr 0px; } 
+            .settings-panel, .logs-panel { display: none; position: absolute; z-index: 100; width: 90%; height: 100%; top: 0; }
+            .settings-panel { left: 0; }
+            .logs-panel { right: 0; width: 100%; font-size: 0.8rem; } /* Logs ocupam tela toda no mobile se ativados */
             
-            /* Classes para abrir menus no mobile */
             .app-container.show-config .settings-panel { display: block; }
+            .app-container.show-logs .logs-panel { display: block; }
             .mobile-toggle { display: block; }
         }
     </style>
@@ -122,45 +145,43 @@
     <div class="app-container" id="appContainer">
         
         <aside class="settings-panel">
-            <h2>⚙️ Variáveis Pandda</h2>
+            <h2>⚙️ Pandda Config</h2>
             <div class="form-group">
-                <label>Status do Sistema</label>
+                <label>Status Admin</label>
                 <select id="sysStatus"><option>Online</option><option>Manutenção</option></select>
             </div>
             <div class="form-group">
-                <label>Horário Atendimento (Teste)</label>
+                <label>Horário Teste (Início/Fim)</label>
                 <div style="display: flex; gap: 5px;">
                     <input type="time" id="hStart" value="09:00">
                     <input type="time" id="hEnd" value="20:00">
                 </div>
             </div>
             <div class="form-group">
-                <label>Códigos Válidos (Separar por vírgula)</label>
-                <input type="text" id="validCodes" value="PANDDA10,VIP2024,TESTE">
+                <label>Códigos Válidos (CSV)</label>
+                <input type="text" id="validCodes" value="PANDDA10, VIP2024, TESTE">
             </div>
             
-            <button class="btn-action" onclick="restartChat()">🔄 Reiniciar Chat</button>
+            <button class="btn-action" onclick="restartChat()">🔄 Reset Chat</button>
             <button class="btn-action" style="background: #333; margin-top: 5px;" onclick="clearLogs()">🗑️ Limpar Logs</button>
 
             <div class="status-box">
                 <div>ESTADO: <span id="displayState" style="color: #00a884">INICIO</span></div>
-                <div>SESSÃO ID: <span id="displaySession">...</span></div>
+                <div>SESSION: <span id="displaySession">...</span></div>
             </div>
         </aside>
 
         <main class="chat-area">
             <div class="phone-mockup">
                 <div class="chat-header">
-                    <div style="width: 35px; height: 35px; background: #fff; border-radius: 50%; display: grid; place-items: center; font-size: 20px;">🐼</div>
+                    <div style="width: 35px; height: 35px; background: rgba(255,255,255,0.2); border-radius: 50%; display: grid; place-items: center;">🐼</div>
                     <div>
-                        <div style="font-weight: 500;">Pandda Atendimento</div>
-                        <div style="font-size: 0.75rem; opacity: 0.8;">Online agora</div>
+                        <div style="font-weight: 500;">Pandda Bot</div>
+                        <div style="font-size: 0.75rem; opacity: 0.8;">Online</div>
                     </div>
                 </div>
                 
-                <div class="chat-messages" id="chatBox">
-                    </div>
-
+                <div class="chat-messages" id="chatBox"></div>
                 <div class="typing-indicator" id="typingIndicator">digitando...</div>
 
                 <div class="chat-input-area">
@@ -171,55 +192,59 @@
         </main>
 
         <aside class="logs-panel" id="logsPanel">
-            <div class="log-entry">
-                <div class="log-header"><span class="log-tag tag-system">SYSTEM</span> <span style="font-size: 0.7rem">NOW</span></div>
-                <div class="log-content">Sistema Iniciado...</div>
-            </div>
-        </aside>
+            </aside>
 
     </div>
 
     <script>
         /* =================================================================
-           CORE ENGINE (Lógica Base)
+           SISTEMA DE LOGS AVANÇADO (Visual VS Code)
            ================================================================= */
         
-        const Session = {
-            id: Math.random().toString(36).substr(2, 5).toUpperCase(),
-            state: 'START', // START, MENU, HOW_IT_WORKS, PLANS, SIGNING_*, TESTING_*
-            data: {} // Armazena inputs temporários
-        };
-
-        // Atualiza a UI com o estado atual
-        function updateStatusUI() {
-            document.getElementById('displayState').innerText = Session.state;
-            document.getElementById('displaySession').innerText = Session.id;
+        function formatJSON(obj) {
+            // Transforma objeto JS em HTML colorido
+            let json = JSON.stringify(obj, null, 2);
+            
+            // Regex para colorir
+            json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                let cls = 'json-number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'json-key'; // Chave
+                    } else {
+                        cls = 'json-string'; // Valor String
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'json-bool'; // Booleano
+                } else if (/null/.test(match)) {
+                    cls = 'json-null'; // Null
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
         }
 
-        // Sistema de Logs (Agora funciona!)
-        function logger(tag, title, detail) {
+        function logger(type, title, data) {
             const panel = document.getElementById('logsPanel');
-            const time = new Date().toLocaleTimeString().split(' ')[0];
+            const time = new Date().toLocaleTimeString('pt-BR');
             
-            let tagClass = 'tag-system';
-            if(tag === 'ENGINE') tagClass = 'tag-engine';
-            if(tag === 'DB') tagClass = 'tag-db';
-            if(tag === 'WEBHOOK') tagClass = 'tag-webhook';
-
-            // Formata o detalhe para JSON bonito ou texto simples
-            let content = detail;
-            if (typeof detail === 'object') {
-                content = JSON.stringify(detail, null, 2);
+            let formattedData = '';
+            if (typeof data === 'object' && data !== null) {
+                formattedData = `<div class="log-data">${formatJSON(data)}</div>`;
+            } else {
+                formattedData = `<div class="log-data" style="color: #fff">${data}</div>`;
             }
 
             const html = `
-                <div class="log-entry">
+                <div class="log-entry border-${type}">
                     <div class="log-header">
-                        <span class="log-tag ${tagClass}">${tag}</span>
-                        <span style="font-size: 0.65rem; opacity: 0.5;">${time}</span>
+                        <div>
+                            <span class="log-tag tag-${type}">${type}</span>
+                            <span style="font-weight:bold; color:#fff; margin-left:8px;">${title}</span>
+                        </div>
+                        <span style="font-size: 0.65rem; color: #666;">${time}</span>
                     </div>
-                    <div style="font-weight: bold; margin-bottom: 2px; color: #fff;">${title}</div>
-                    <div class="log-content">${content}</div>
+                    ${formattedData}
                 </div>
             `;
             
@@ -227,307 +252,222 @@
         }
 
         /* =================================================================
-           PROCESSADORES DE TEXTO (Spintax e Shuffle)
+           ENGINE CORE
            ================================================================= */
+        const Session = { id: 'SES-' + Math.floor(Math.random()*1000), state: 'START', data: {} };
+
+        function updateStatusUI() {
+            document.getElementById('displayState').innerText = Session.state;
+            document.getElementById('displaySession').innerText = Session.id;
+        }
 
         function processSpintax(text) {
-            // Regex para capturar {a|b|c}
             const processed = text.replace(/\{([^{}]+)\}/g, (match, group) => {
                 const options = group.split('|');
-                const selected = options[Math.floor(Math.random() * options.length)];
-                return selected;
+                return options[Math.floor(Math.random() * options.length)];
             });
 
-            // LOG IMPORTANTE: Mostra a montagem da frase
+            // LOG DE SPINTAX (Destacado)
             if (text.includes('{')) {
-                logger('ENGINE', 'Spintax Processado', {
-                    template: text,
-                    generated: processed
+                logger('ENGINE', 'Spintax Generation', {
+                    Template: text,
+                    Result: processed
                 });
             }
             return processed;
         }
 
         function shuffleMessages(array) {
-            // Algoritmo Fisher-Yates para embaralhar
             let arr = [...array];
             for (let i = arr.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
                 [arr[i], arr[j]] = [arr[j], arr[i]];
             }
-            logger('ENGINE', 'Ordem Embaralhada', { count: arr.length, newOrder: 'Randomized' });
+            logger('ENGINE', 'Shuffle Order', { 
+                original_count: array.length, 
+                status: 'Randomized Sequence'
+            });
             return arr;
         }
 
         /* =================================================================
-           FLUXOS SEPARADOS (MODULARIDADE)
-           Cada função cuida de uma parte da conversa.
+           FLUXOS (MODULAR)
            ================================================================= */
+        
+        // --- DB MOCK (Simulação Supabase) ---
+        const DB = {
+            checkCode: (code) => {
+                const list = document.getElementById('validCodes').value.toUpperCase().split(',').map(c => c.trim());
+                const isValid = list.includes(code.toUpperCase());
+                
+                // LOG EXPLICITO DE DB
+                logger('SUPABASE', 'Query: public.codigos', {
+                    query_type: 'SELECT',
+                    input_code: code,
+                    found: isValid,
+                    latency: '12ms'
+                });
+                return isValid;
+            },
+            saveSession: (sessionData) => {
+                logger('SUPABASE', 'Upsert: public.sessao', {
+                    id: sessionData.id,
+                    state: sessionData.state,
+                    payload: sessionData.data
+                });
+            }
+        };
 
-        // --- FLUXO 1: BOAS VINDAS E MENU ---
+        // --- FLUXOS ---
+        
         const FlowMenu = {
             getGreeting: () => {
-                const template = "{Olá|Oi|Tudo bem}, {Bom dia|Boa tarde|Boa noite}! Bem-vindo ao Pandda 🐼. Como {podemos ajudar|posso ser útil} hoje?";
-                return [template, "1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assinar\n4️⃣ Testar\n5️⃣ Dúvidas\n6️⃣ Falar com atendente"];
+                return ["{Olá|Oi|E aí}, {tudo bem|como vai}? 🐼", "1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assinar\n4️⃣ Testar\n5️⃣ Dúvidas"];
             },
-            
-            handleInput: (input) => {
-                // Roteador do Menu Principal
-                switch(input) {
-                    case '1': return FlowHowItWorks.start();
-                    case '2': return FlowPlans.start();
-                    case '3': return FlowSigning.start();
-                    case '4': return FlowTesting.start();
-                    case '5': return FlowFAQ.start();
-                    case '6': return FlowSupport.start();
-                    default: return { text: ["Opção inválida. Digite de 1 a 6."], newState: 'MENU' };
-                }
+            handle: (opt) => {
+                if(opt==='1') return FlowHowItWorks.start();
+                if(opt==='2') return FlowPlans.start();
+                if(opt==='3') return FlowSigning.start();
+                if(opt==='4') return FlowTesting.start();
+                if(opt==='5') return FlowFAQ.start();
+                return { text: ["Opção inválida. Tente 1 a 5."], newState: 'MENU' };
             }
         };
 
-        // --- FLUXO 2: COMO FUNCIONA ---
         const FlowHowItWorks = {
-            templates: [
-                "Funciona 100% via internet 🌐",
-                "Sem {cabos|antenas|instalação física} necessária.",
+            msgs: [
+                "Funciona 100% via {internet|web} 🌐",
+                "Sem {cabos|antenas} ou instalação física.",
                 "Compatível com Smart TV, TV Box e Celular 📱",
-                "Temos sistema **DualAPP**: 2 apps para {não travar|estabilidade máxima} 🚀",
-                "Fornecemos usuário e senha para você logar 🔑"
+                "Sistema **DualAPP**: 2 apps para {maior estabilidade|não travar} 🚀"
             ],
-            
             start: () => {
-                // Embaralha as frases do meio
-                const shuffled = shuffleMessages(FlowHowItWorks.templates).map(t => processSpintax(t));
-                const finalMsg = ["Veja como é simples:", ...shuffled, "Deseja ver os planos? (Digite 0 p/ Menu)"];
-                return { text: finalMsg, newState: 'MENU' }; // Mantém no menu, apenas informa
+                const shuffled = shuffleMessages(FlowHowItWorks.msgs).map(t => processSpintax(t));
+                return { text: ["Confira como funciona:", ...shuffled, "Digite 0 para voltar."], newState: 'MENU' };
             }
         };
 
-        // --- FLUXO 3: PLANOS ---
         const FlowPlans = {
-            start: () => {
-                const txt = "Confira nossos planos DualAPP:\n\n1️⃣ **Base (1 tela):** R$ 34,90\n2️⃣ **Dual (2 telas):** R$ 52,80\n3️⃣ **Família (3 telas):** R$ 70,70\n\nDigite **3** para Assinar ou **0** para Voltar.";
-                return { text: [txt], newState: 'MENU' };
-            }
+            start: () => ({ text: ["1️⃣ Base: R$34,90\n2️⃣ Dual: R$52,80\n3️⃣ Família: R$70,70\n\nDigite 3 para Assinar."], newState: 'MENU' })
         };
 
-        // --- FLUXO 4: ASSINATURA ---
         const FlowSigning = {
-            start: () => {
-                return { 
-                    text: ["Qual plano deseja? (Digite 1, 2 ou 3)"], 
-                    newState: 'SIGN_PLAN' 
-                };
-            },
-            
-            handle: (input, currentState) => {
-                // Etapa 1: Escolha do Plano
-                if (currentState === 'SIGN_PLAN') {
-                    Session.data.plan = input; // Salva
-                    return { 
-                        text: ["Tem código de indicação? Digite o código ou digite **Não**."], 
-                        newState: 'SIGN_CODE' 
-                    };
+            start: () => ({ text: ["Qual plano? (1, 2 ou 3)"], newState: 'SIGN_PLAN' }),
+            handle: (inp, state) => {
+                if(state === 'SIGN_PLAN') {
+                    Session.data.plan = inp;
+                    return { text: ["Tem código de indicação? Digite ou escreva **Não**."], newState: 'SIGN_CODE' };
                 }
-                
-                // Etapa 2: Validação de Código
-                if (currentState === 'SIGN_CODE') {
-                    const clean = input.toLowerCase().replace(/['"]/g, '');
-                    if (['nao', 'não', 'n'].includes(clean)) {
+                if(state === 'SIGN_CODE') {
+                    if(['nao','não','n'].includes(inp.toLowerCase())) {
                         Session.data.code = null;
-                        return { text: ["Ok, sem código. Deseja canais Adultos? (Sim/Não)"], newState: 'SIGN_ADULT' };
-                    } else {
-                        // Simula consulta DB
-                        const validCodes = document.getElementById('validCodes').value.split(',').map(c => c.trim().toUpperCase());
-                        const isValid = validCodes.includes(input.toUpperCase());
-                        logger('DB', 'SELECT * FROM codigos', { input: input, found: isValid });
-
-                        if (isValid) {
-                            Session.data.code = input.toUpperCase();
-                            return { text: ["Código Válido! ✅ Ganhou bônus. Deseja Adultos? (Sim/Não)"], newState: 'SIGN_ADULT' };
-                        } else {
-                            return { text: ["Código inválido ❌. Tente novamente ou digite 'Não'."], newState: 'SIGN_CODE' };
-                        }
+                        return { text: ["Sem código. Adulto? (Sim/Não)"], newState: 'SIGN_ADULT' };
                     }
+                    if(DB.checkCode(inp)) {
+                        Session.data.code = inp;
+                        return { text: ["Código Válido! ✅ Adulto? (Sim/Não)"], newState: 'SIGN_ADULT' };
+                    }
+                    return { text: ["Inválido ❌. Tente novamente ou digite Não."], newState: 'SIGN_CODE' };
                 }
-
-                // Etapa 3: Adulto e Finalização
-                if (currentState === 'SIGN_ADULT') {
-                    Session.data.adult = input;
-                    
-                    // Simula geração de link
-                    const paymentUrl = `pagar.pandda.vip?ref=${Session.id}`;
-                    logger('WEBHOOK', 'Pagamento Gerado', { plan: Session.data.plan, url: paymentUrl });
-                    
-                    const resume = `📝 *Resumo do Pedido*\nPlano: ${Session.data.plan} telas\nCódigo: ${Session.data.code || 'N/A'}\nAdulto: ${input}\n\n🔗 Link: ${paymentUrl}`;
-                    return { text: [resume, "Aguardando confirmação..."], newState: 'MENU' };
+                if(state === 'SIGN_ADULT') {
+                    Session.data.adult = inp;
+                    const url = `pagar.pandda.vip?ref=${Session.id}`;
+                    logger('DISCORD', 'Webhook: Novo Pagamento', { url: url, plan: Session.data.plan });
+                    return { text: [`Resumo:\nPlano ${Session.data.plan}\nLink: ${url}`], newState: 'MENU' };
                 }
             }
         };
 
-        // --- FLUXO 5: TESTE ---
         const FlowTesting = {
-            start: () => {
-                return { text: ["Para testar, instale o app: pandda.vip/guia\n\nDigite **1** p/ Testar Agora ou **2** p/ Agendar."], newState: 'TEST_OPTION' };
-            },
-            
-            handle: (input, state) => {
-                if (state === 'TEST_OPTION') {
-                    if (input === '1') {
-                        return { text: ["Ok! Qual o seu Nome?"], newState: 'TEST_NAME' };
-                    } else {
-                        return { text: ["Horários: 09h às 20h. Qual horário prefere?"], newState: 'TEST_SCHEDULE' };
-                    }
-                }
-                if (state === 'TEST_SCHEDULE') {
-                    Session.data.schedule = input;
-                    return { text: ["Certo. Qual seu nome?"], newState: 'TEST_NAME' };
-                }
-                if (state === 'TEST_NAME') {
-                    Session.data.name = input;
-                    // WEBHOOK DISCORD
-                    logger('WEBHOOK', 'Solicitação Teste', Session.data);
-                    return { text: [`Obrigado ${input}! Gerando seu teste...`, "Envie **0** para voltar ao menu."], newState: 'MENU' };
+            start: () => ({ text: ["Instale o app: pandda.vip/guia\n1-Agora | 2-Agendar"], newState: 'TEST_OPT' }),
+            handle: (inp, state) => {
+                if(state === 'TEST_OPT') return { text: ["Qual seu nome?"], newState: 'TEST_NAME' };
+                if(state === 'TEST_NAME') {
+                    Session.data.name = inp;
+                    logger('DISCORD', 'Webhook: Teste Solicitado', Session.data);
+                    return { text: [`Obrigado ${inp}, teste gerado!`], newState: 'MENU' };
                 }
             }
         };
-
-        // --- FLUXO 6: FAQ ---
+        
         const FlowFAQ = {
-            items: [
-                "**Onde usar?** 🌍 Smart TV, Celular, PC.",
-                "**Pagamento?** 💳 PIX e Cartão.",
-                "**É assinatura?** ✍️ Não, é pré-pago sem fidelidade."
-            ],
             start: () => {
-                const shuffled = shuffleMessages(FlowFAQ.items);
-                return { text: ["Dúvidas Frequentes:", ...shuffled, "Mais em: pandda.vip/FAQ"], newState: 'MENU' };
-            }
-        };
-
-        const FlowSupport = {
-            start: () => {
-                logger('WEBHOOK', 'Chamar Humano', { session: Session.id });
-                return { text: ["Chamando um atendente... 👩‍💻 Aguarde."], newState: 'MENU' };
+                const qs = ["**Onde usar?** 🌍 TV e Celular.", "**Pagamento?** 💳 Pix/Cartão."];
+                return { text: ["FAQ:", ...shuffleMessages(qs)], newState: 'MENU' };
             }
         };
 
         /* =================================================================
-           CONTROLADOR PRINCIPAL (ROUTER)
+           CONTROLLER & UI
            ================================================================= */
-
-        async function processMessage(input) {
-            const cleanInput = input.trim();
-            let response = { text: [], newState: Session.state };
-
-            // Reset Global
-            if (cleanInput === '0') {
+        
+        async function processMessage(msg) {
+            const clean = msg.trim();
+            if(clean === '0') {
                 Session.state = 'MENU';
-                Session.data = {};
-                sendBotMessages(FlowMenu.getGreeting());
-                updateStatusUI();
+                sendBot(FlowMenu.getGreeting());
                 return;
             }
 
-            // --- ROTEAMENTO DE ESTADOS ---
+            let res = { text: [], newState: Session.state };
             
-            if (Session.state === 'START') {
-                // Qualquer input no inicio leva ao menu
-                const res = FlowMenu.getGreeting();
-                response = { text: res, newState: 'MENU' };
+            if(Session.state === 'START' || Session.state === 'MENU') {
+                if(Session.state === 'START') res = { text: FlowMenu.getGreeting(), newState: 'MENU' };
+                else res = FlowMenu.handle(clean);
             }
-            else if (Session.state === 'MENU') {
-                response = FlowMenu.handleInput(cleanInput);
-            }
-            else if (Session.state.startsWith('SIGN')) {
-                response = FlowSigning.handle(cleanInput, Session.state);
-            }
-            else if (Session.state.startsWith('TEST')) {
-                response = FlowTesting.handle(cleanInput, Session.state);
-            }
-            // Fallback
-            else {
-                response = { text: ["Não entendi. Digite 0 para voltar."], newState: Session.state };
-            }
+            else if(Session.state.startsWith('SIGN')) res = FlowSigning.handle(clean, Session.state);
+            else if(Session.state.startsWith('TEST')) res = FlowTesting.handle(clean, Session.state);
 
-            // Atualiza Sessão e Envia
-            if (response && response.newState) Session.state = response.newState;
+            if(res.newState) {
+                Session.state = res.newState;
+                DB.saveSession(Session); // Salva no DB a cada mudança de estado
+            }
             updateStatusUI();
-
-            if (response && response.text) {
-                await sendBotMessages(response.text);
-            }
+            if(res.text) await sendBot(res.text);
         }
 
-        /* =================================================================
-           UI & UTILITÁRIOS DE MENSAGEM
-           ================================================================= */
-
-        function addMessageBubble(text, sender) {
+        function addMsg(html, type) {
             const box = document.getElementById('chatBox');
-            const div = document.createElement('div');
-            div.className = `message ${sender}`;
-            // Markdown básico
-            div.innerHTML = text.replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<b>$1</b>');
-            box.appendChild(div);
+            box.innerHTML += `<div class="message ${type}">${html.replace(/\n/g,'<br>')}</div>`;
             box.scrollTop = box.scrollHeight;
         }
 
-        async function sendBotMessages(messagesArray) {
-            const indicator = document.getElementById('typingIndicator');
-            
-            for (let rawText of messagesArray) {
-                // 1. Processa Spintax
-                const finalTexture = processSpintax(rawText);
-
-                // 2. Calcula Delay Humano
-                indicator.style.display = 'block';
-                const charCount = finalTexture.length;
-                const delay = Math.min((charCount / 20) * 1000 + 800, 4000); // Min 800ms, Max 4s
-                
-                await new Promise(r => setTimeout(r, delay));
-                
-                indicator.style.display = 'none';
-                addMessageBubble(finalTexture, 'bot');
-                
-                // Pequena pausa entre mensagens múltiplas
+        async function sendBot(msgs) {
+            const ind = document.getElementById('typingIndicator');
+            for(let m of msgs) {
+                const txt = processSpintax(m);
+                ind.style.display = 'block';
+                await new Promise(r => setTimeout(r, Math.min(txt.length*50, 2000))); // Delay simulado
+                ind.style.display = 'none';
+                addMsg(txt, 'bot');
                 await new Promise(r => setTimeout(r, 500));
             }
         }
 
         function sendUserMessage() {
-            const input = document.getElementById('userInput');
-            const text = input.value;
-            if(!text) return;
-            
-            addMessageBubble(text, 'user');
-            input.value = '';
-            
-            processMessage(text);
+            const inp = document.getElementById('userInput');
+            const txt = inp.value;
+            if(!txt) return;
+            addMsg(txt, 'user');
+            inp.value = '';
+            processMessage(txt);
         }
 
         function handleEnter(e) { if(e.key === 'Enter') sendUserMessage(); }
-
+        
         function restartChat() {
             document.getElementById('chatBox').innerHTML = '';
             Session.state = 'START';
             Session.data = {};
-            updateStatusUI();
-            addMessageBubble("Olá! Digite algo para começar.", 'bot');
             logger('SYSTEM', 'Chat Reiniciado', {});
+            sendBot(["Olá!"]);
         }
-
-        function clearLogs() {
-            document.getElementById('logsPanel').innerHTML = '';
-        }
-
-        function toggleConfig() {
-            document.getElementById('appContainer').classList.toggle('show-config');
-        }
+        function clearLogs() { document.getElementById('logsPanel').innerHTML = ''; }
+        function toggleConfig() { document.getElementById('appContainer').classList.toggle('show-config'); }
 
         // Init
-        updateStatusUI();
-        addMessageBubble("Olá! Digite 'Oi' para começar.", 'bot');
+        logger('SYSTEM', 'Pandda Engine v2.0 Started', { platform: 'Browser', mock_db: true });
+        sendBot(["Olá! Digite algo."]);
 
     </script>
 </body>
