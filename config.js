@@ -1,12 +1,13 @@
-/* CONFIGURAÇÃO E TEXTOS */
+/* ARQUIVO DE CONFIGURAÇÃO E TEXTOS */
 const CONTENT = {
     greetings: {
         firstContact: [
-            "{Olá|Oi|Opa}, {SAUDACAO_TEMPO}! 🐼 Bem-vindo ao atendimento **Pandda**. Em que {posso ajudar|posso ser útil} hoje? 👇",
-            "{Fala|E aí|Tudo bem}, {SAUDACAO_TEMPO}! 😃 Que bom te ver no **Pandda**. O que vamos {assistir|resolver} hoje? Escolha uma opção:",
-            "{SAUDACAO_TEMPO}. Você está no auto-atendimento **Pandda**. 🚀 Para agilizar, escolha um dos assuntos abaixo:",
-            "{Olá|Oi}! {SAUDACAO_TEMPO}. Somos a equipe **Pandda**. 🐼 Para começar, {digite|selecione} a opção desejada:",
-            "{SAUDACAO_TEMPO}! 📺 O **Pandda** está pronto para te atender. Como podemos ajudar com seu acesso hoje?"
+            // Note o uso de %SAUDACAO% para não confundir com o Spintax {}
+            "{Olá|Oi|Opa}, %SAUDACAO%! 🐼 Bem-vindo ao atendimento **Pandda**. Em que {posso ajudar|posso ser útil} hoje? 👇",
+            "{Fala|E aí|Tudo bem}, %SAUDACAO%! 😃 Que bom te ver no **Pandda**. O que vamos {assistir|resolver} hoje? Escolha uma opção:",
+            "%SAUDACAO%. Você está no auto-atendimento **Pandda**. 🚀 Para agilizar, escolha um dos assuntos abaixo:",
+            "{Olá|Oi}! %SAUDACAO%. Somos a equipe **Pandda**. 🐼 Para começar, {digite|selecione} a opção desejada:",
+            "%SAUDACAO%! 📺 O **Pandda** está pronto para te atender. Como podemos ajudar com seu acesso hoje?"
         ],
         returnMenu: [
             "{Entendido|Certo|Ok}! 👍 Voltando ao {início|menu principal}. O que mais você precisa?",
@@ -17,7 +18,7 @@ const CONTENT = {
         ]
     },
 
-    // MENU DINÂMICO (NOVO)
+    // MENU DINÂMICO (PADRONIZADO)
     menuSystem: {
         headers: [
             "{Confira|Veja|Aqui estão} as opções disponíveis 👇",
@@ -25,13 +26,14 @@ const CONTENT = {
             "{Selecione|Digite} a opção desejada abaixo:",
             "Para {agilizar|continuar}, escolha um dos tópicos:"
         ],
+        // Números fixos com emoji, texto variável
         items: [
-            "{1️⃣|1.|1 -} {Como funciona|Entender o sistema} {🤔|⚙️|👀}",
-            "{2️⃣|2.|2 -} {Ver Planos|Preços e Planos|Tabela de Valores} {💰|💲|📊}",
-            "{3️⃣|3.|3 -} {Assinar|Quero Assinar|Contratar Agora} {✍️|✅|🚀}",
-            "{4️⃣|4.|4 -} {Testar|Gerar Teste|Quero um Teste} {🆓|⏱️|🍿}",
-            "{5️⃣|5.|5 -} {Dúvidas|Perguntas Frequentes|Ajuda} {❓|❔|🤷‍♂️}",
-            "{6️⃣|6.|6 -} {Falar com atendente|Suporte Humano|Falar com Pessoa} {👨‍💻|👩‍💻|🆘}"
+            "1️⃣ {Como funciona|Entender o sistema} {🤔|⚙️|👀}",
+            "2️⃣ {Ver Planos|Preços e Planos|Tabela de Valores} {💰|💲|📊}",
+            "3️⃣ {Assinar|Quero Assinar|Contratar Agora} {✍️|✅|🚀}",
+            "4️⃣ {Testar|Gerar Teste|Quero um Teste} {🆓|⏱️|🍿}",
+            "5️⃣ {Dúvidas|Perguntas Frequentes|Ajuda} {❓|❔|🤷‍♂️}",
+            "6️⃣ {Falar com atendente|Suporte Humano|Falar com Pessoa} {👨‍💻|👩‍💻|🆘}"
         ]
     },
 
