@@ -1,6 +1,4 @@
-/* =================================================================
-   FLUXOS DE CONVERSA (REGRAS DE NEGÓCIO)
-   ================================================================= */
+/* FLUXOS DE NEGÓCIO */
 const Session = { id: 'SES-INIT', state: 'START', firstContact: true, data: {} };
 
 const FlowMenu = {
@@ -36,55 +34,36 @@ const FlowHowItWorks = {
 };
 
 const FlowPlans = {
-    start: () => ({
-        text: [CONTENT.plans.intro, CONTENT.plans.list, CONTENT.plans.cta],
-        newState: 'MENU'
-    })
+    start: () => ({ text: [CONTENT.plans.intro, CONTENT.plans.list, CONTENT.plans.cta], newState: 'MENU' })
 };
 
 const FlowSigning = {
     start: () => ({ text: [CONTENT.signing.askPlan], newState: 'SIGN_PLAN' }),
     handle: (input, state) => {
-        if (state === 'SIGN_PLAN') {
-            Session.data.plan = input;
-            return { text: [CONTENT.signing.askCode], newState: 'SIGN_CODE' };
-        }
+        if (state === 'SIGN_PLAN') { Session.data.plan = input; return { text: [CONTENT.signing.askCode], newState: 'SIGN_CODE' }; }
         if (state === 'SIGN_CODE') {
             const clean = input.toLowerCase().replace(/['"]/g, '').trim();
-            if (['nao', 'não', 'n'].includes(clean)) {
-                Session.data.code = null;
-                return { text: [CONTENT.signing.noCode, CONTENT.signing.askAdult], newState: 'SIGN_ADULT' };
-            }
+            if (['nao', 'não', 'n'].includes(clean)) { Session.data.code = null; return { text: [CONTENT.signing.noCode, CONTENT.signing.askAdult], newState: 'SIGN_ADULT' }; }
             const valid = document.getElementById('validCodes').value.toUpperCase().includes(input.toUpperCase());
             logger('DB', 'Check Code', { code: input, valid: valid });
-            
-            if (valid) {
-                Session.data.code = input.toUpperCase();
-                return { text: [CONTENT.signing.successCode, CONTENT.signing.askAdult], newState: 'SIGN_ADULT' };
-            } else {
-                return { text: [CONTENT.signing.errorCode], newState: 'SIGN_CODE' };
-            }
+            if (valid) { Session.data.code = input.toUpperCase(); return { text: [CONTENT.signing.successCode, CONTENT.signing.askAdult], newState: 'SIGN_ADULT' }; }
+            else { return { text: [CONTENT.signing.errorCode], newState: 'SIGN_CODE' }; }
         }
         if (state === 'SIGN_ADULT') {
             Session.data.adult = input;
             const url = `pagar.pandda.vip?id=${Session.id}`;
             logger('WEBHOOK', 'Venda Criada', { plan: Session.data.plan, adult: input });
-            return { 
-                text: [CONTENT.signing.summaryHeader, `Plano: ${Session.data.plan}`, `Adulto: ${input}`, `Link: ${url}`, CONTENT.signing.waitLink], 
-                newState: 'MENU' 
-            };
+            return { text: [CONTENT.signing.summaryHeader, `Plano: ${Session.data.plan}`, `Adulto: ${input}`, `Link: ${url}`, CONTENT.signing.waitLink], newState: 'MENU' };
         }
     }
 };
 
 const FlowTesting = {
     start: () => {
-        if (isBusinessHours()) {
-            return { text: [CONTENT.testing.guideLink, CONTENT.testing.options], newState: 'TEST_OPT' };
-        } else {
+        if (isBusinessHours()) return { text: [CONTENT.testing.guideLink, CONTENT.testing.options], newState: 'TEST_OPT' };
+        else {
             const [s, e] = [document.getElementById('workStart').value, document.getElementById('workEnd').value];
-            const msg = CONTENT.testing.closed.replace("{START}", s).replace("{END}", e);
-            return { text: [msg], newState: 'TEST_OPT' };
+            return { text: [CONTENT.testing.closed.replace("{START}", s).replace("{END}", e)], newState: 'TEST_OPT' };
         }
     },
     handle: (input, state) => {
@@ -101,22 +80,14 @@ const FlowTesting = {
         if (state === 'TEST_ADULT') {
             Session.data.adult = input;
             logger('WEBHOOK', 'Solicitacao Teste', Session.data);
-            const msg = CONTENT.testing.success.replace("{NAME}", Session.data.name);
-            return { text: [msg], newState: 'MENU' };
+            return { text: [CONTENT.testing.success.replace("{NAME}", Session.data.name)], newState: 'MENU' };
         }
     }
 };
 
 const FlowFAQ = {
-    start: () => {
-        const shuffled = shuffleArray(CONTENT.faq);
-        return { text: ["FAQ:", ...shuffled], newState: 'MENU' };
-    }
+    start: () => { const shuffled = shuffleArray(CONTENT.faq); return { text: ["FAQ:", ...shuffled], newState: 'MENU' }; }
 };
-
 const FlowSupport = {
-    start: () => {
-        logger('WEBHOOK', 'Humano Solicitado', {});
-        return { text: [CONTENT.support], newState: 'MENU' };
-    }
+    start: () => { logger('WEBHOOK', 'Humano Solicitado', {}); return { text: [CONTENT.support], newState: 'MENU' }; }
 };

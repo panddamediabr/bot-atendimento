@@ -1,8 +1,4 @@
-/* =================================================================
-   ENGINE TÉCNICA (LOGS, SPINTAX, TEMPO, DELAY)
-   ================================================================= */
-
-// --- LOG SYSTEM ---
+/* ENGINE TÉCNICA */
 function formatJSON(obj) {
     let json = JSON.stringify(obj, null, 2);
     return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
@@ -22,7 +18,6 @@ function logger(type, title, data) {
     panel.insertAdjacentHTML('afterbegin', html);
 }
 
-// --- TEXT TOOLS ---
 function processSpintax(text) {
     return text.replace(/\{([^{}]+)\}/g, (match, group) => {
         const options = group.split('|');
@@ -39,7 +34,6 @@ function shuffleArray(arr) {
     return a;
 }
 
-// --- TIME ENGINE ---
 function getSimulatedDate() {
     const [h, m] = document.getElementById('simulatedTime').value.split(':');
     const now = new Date(); now.setHours(h, m, 0, 0); return now;
@@ -64,7 +58,6 @@ function isBusinessHours() {
     return nowVal >= (parseInt(sH)*60 + parseInt(sM)) && nowVal < (parseInt(eH)*60 + parseInt(eM));
 }
 
-// --- DELAY CALCULATOR ---
 function calculateServerDelay(textLength) {
     const ms = parseInt(document.getElementById('msPerChar').value);
     const total = 1000 + (textLength * ms) + ((Math.random()*200)-100);
