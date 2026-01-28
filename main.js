@@ -1,4 +1,4 @@
-/* MAIN CONTROLLER - ONE-SHOT & RESPONSIVE */
+/* MAIN CONTROLLER */
 
 async function processMessage(msg) {
     const clean = msg.trim();
@@ -21,15 +21,22 @@ async function processMessage(msg) {
     if (res.text) await sendBotMessages(res.text);
 }
 
-// ONE-SHOT LOGIC (Mensagem Única)
+// ENGINE DE ENVIO ONE-SHOT (Agrupa mensagens para notificação)
 async function sendBotMessages(msgs) {
     if (!msgs || msgs.length === 0) return;
-    
-    const textoAgrupado = msgs.join('\n\n'); // Simula a junção para Notificação
+
+    // JUNTAR MENSAGENS
+    const textoAgrupado = msgs.join('\n\n');
     const finalText = processSpintax(textoAgrupado);
+    
+    // SMART DELAY (Calcula baseado no tamanho do bloco todo)
     const delayMs = calculateServerDelay(finalText.length);
     
-    logger('SERVER', '⏳ Delay Agrupado', { chars: finalText.length, time: (delayMs/1000).toFixed(2)+'s' });
+    logger('SERVER', '⏳ Delay Smart', { 
+        chars: finalText.length, 
+        tempo: (delayMs / 1000).toFixed(2) + 's',
+        tipo: finalText.length > 60 ? 'Colar (Longo)' : 'Digitar (Curto)'
+    });
     
     await new Promise(r => setTimeout(r, delayMs));
     addMsg(finalText, 'bot');
@@ -37,17 +44,18 @@ async function sendBotMessages(msgs) {
 
 // SINCRONIA MOBILE
 function syncTime(val) {
-    document.getElementById('simulatedTime').value = val;
-    document.getElementById('simulatedTimeMobile').value = val;
+    const desk = document.getElementById('simulatedTime');
+    const mob = document.getElementById('simulatedTimeMobile');
+    if(desk) desk.value = val;
+    if(mob) mob.value = val;
     updatePhoneClock();
 }
 
 function updateStatusUI() {
     const state = Session.state;
-    document.getElementById('displayState').innerText = state;
-    document.getElementById('displayFirstContact').innerText = Session.firstContact;
-    if(document.getElementById('displayStateMobile')) 
-        document.getElementById('displayStateMobile').innerText = state;
+    if(document.getElementById('displayState')) document.getElementById('displayState').innerText = state;
+    if(document.getElementById('displayFirstContact')) document.getElementById('displayFirstContact').innerText = Session.firstContact;
+    if(document.getElementById('displayStateMobile')) document.getElementById('displayStateMobile').innerText = state;
 }
 
 function addMsg(txt, type) {
@@ -79,4 +87,6 @@ function restartChat() {
     processMessage('');
 }
 
-setTimeout(() => restartChat(), 800);
+// Init
+updatePhoneClock();
+setTimeout(() => restartChat(), 500);

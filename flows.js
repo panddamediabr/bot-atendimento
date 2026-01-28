@@ -3,18 +3,33 @@ const Session = { id: 'SES-INIT', state: 'START', firstContact: true, data: {} }
 
 const FlowMenu = {
     getOptions: () => {
-        let template = "";
+        let greeting = "";
+        
+        // 1. Saudação
         if (Session.firstContact) {
-            template = CONTENT.greetings.firstContact[Math.floor(Math.random() * CONTENT.greetings.firstContact.length)];
-            template = template.replace("{SAUDACAO_TEMPO}", getGreeting());
+            greeting = processSpintax(getRandom(CONTENT.greetings.firstContact));
+            greeting = greeting.replace("{SAUDACAO_TEMPO}", getGreeting());
             Session.firstContact = false;
         } else {
-            template = CONTENT.greetings.returnMenu[Math.floor(Math.random() * CONTENT.greetings.returnMenu.length)];
+            greeting = processSpintax(getRandom(CONTENT.greetings.returnMenu));
         }
-        return [template, CONTENT.menuOptions];
+
+        // 2. GERAÇÃO DO MENU DINÂMICO
+        const header = processSpintax(getRandom(CONTENT.menuSystem.headers));
+        // Mapeia e junta os itens com quebra de linha
+        const itemsList = CONTENT.menuSystem.items.map(item => processSpintax(item)).join('\n');
+        
+        const menuBlock = `${header}\n\n${itemsList}`;
+
+        // Retorna Saudação + Bloco Menu (Serão unidos no main.js)
+        return [greeting, menuBlock];
     },
+
     handle: (input) => {
-        switch(input) {
+        // Remove texto, mantem apenas numeros para o switch
+        const opt = input.replace(/[^0-9]/g, '');
+        
+        switch(opt) {
             case '1': return FlowHowItWorks.start();
             case '2': return FlowPlans.start();
             case '3': return FlowSigning.start();

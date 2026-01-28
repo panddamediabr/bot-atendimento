@@ -16,7 +16,9 @@
             <div class="time-box">
                 <label class="time-label">⏰ Horário Simulado</label>
                 <input type="time" id="simulatedTime" value="09:00" onchange="syncTime(this.value)">
+                <div class="hint-text">Define Bom dia/Tarde/Noite</div>
             </div>
+            
             <div class="form-group">
                 <label>Expediente Teste</label>
                 <div style="display:flex; gap:5px;">
@@ -24,8 +26,16 @@
                     <input type="time" id="workEnd" value="20:00">
                 </div>
             </div>
-            <div class="form-group"><label>Delay (ms/char)</label><input type="number" id="msPerChar" value="45"></div>
-            <div class="form-group"><label>Códigos Válidos</label><input type="text" id="validCodes" value="PANDDA10, TESTE"></div>
+
+            <div class="form-group">
+                <label>Velocidade Humana (ms)</label>
+                <input type="number" id="msPerChar" value="60">
+            </div>
+
+            <div class="form-group">
+                <label>Códigos Válidos</label>
+                <input type="text" id="validCodes" value="PANDDA10, TESTE">
+            </div>
             
             <button class="btn-action" onclick="restartChat()">🔄 Nova Sessão</button>
             <div class="status-box">
@@ -36,7 +46,7 @@
 
         <main class="chat-area">
             <details class="mobile-config-card">
-                <summary>Painel de Controle 🐼</summary>
+                <summary>Variáveis & Controle 🐼</summary>
                 <div class="config-content">
                     <div class="form-group">
                         <label>Horário Simulado:</label>

@@ -1,8 +1,5 @@
-/* =================================================================
-   ARQUIVO DE CONFIGURAÇÃO E TEXTOS (MARKETING/VENDAS)
-   ================================================================= */
+/* CONFIGURAÇÃO E TEXTOS */
 const CONTENT = {
-    // Saudações Temporais
     greetings: {
         firstContact: [
             "{Olá|Oi|Opa}, {SAUDACAO_TEMPO}! 🐼 Bem-vindo ao atendimento **Pandda**. Em que {posso ajudar|posso ser útil} hoje? 👇",
@@ -20,8 +17,24 @@ const CONTENT = {
         ]
     },
 
-    menuOptions: "1️⃣ Como funciona\n2️⃣ Planos\n3️⃣ Assinar\n4️⃣ Testar\n5️⃣ Dúvidas\n6️⃣ Falar com atendente",
-    
+    // MENU DINÂMICO (NOVO)
+    menuSystem: {
+        headers: [
+            "{Confira|Veja|Aqui estão} as opções disponíveis 👇",
+            "Como {posso te ajudar|podemos prosseguir}? Escolha uma opção:",
+            "{Selecione|Digite} a opção desejada abaixo:",
+            "Para {agilizar|continuar}, escolha um dos tópicos:"
+        ],
+        items: [
+            "{1️⃣|1.|1 -} {Como funciona|Entender o sistema} {🤔|⚙️|👀}",
+            "{2️⃣|2.|2 -} {Ver Planos|Preços e Planos|Tabela de Valores} {💰|💲|📊}",
+            "{3️⃣|3.|3 -} {Assinar|Quero Assinar|Contratar Agora} {✍️|✅|🚀}",
+            "{4️⃣|4.|4 -} {Testar|Gerar Teste|Quero um Teste} {🆓|⏱️|🍿}",
+            "{5️⃣|5.|5 -} {Dúvidas|Perguntas Frequentes|Ajuda} {❓|❔|🤷‍♂️}",
+            "{6️⃣|6.|6 -} {Falar com atendente|Suporte Humano|Falar com Pessoa} {👨‍💻|👩‍💻|🆘}"
+        ]
+    },
+
     howItWorks: [
         "Funciona 100% via {internet|conexão web} 🌐",
         "Sem {cabos|antenas|aparelhos extras}.",
@@ -29,13 +42,11 @@ const CONTENT = {
         "Sistema **DualAPP**: 2 apps para {maior estabilidade|não travar} 🚀",
         "Basta instalar e logar com os dados que fornecemos 🔑"
     ],
-
     plans: {
         intro: "Confira nossos planos Mensais (DualAPP):",
         list: "1️⃣ **Plano Base (1 tela):** R$ 34,90\n2️⃣ **Plano Dual (2 telas):** R$ 52,80\n3️⃣ **Plano Família (3 telas):** R$ 70,70",
         cta: "Digite **3** para Assinar agora ou **0** para Voltar."
     },
-
     signing: {
         askPlan: "Qual plano deseja? (Digite 1, 2 ou 3)",
         askCode: "Possui código de indicação? Se sim, digite. Se não, digite **Não**.",
@@ -46,7 +57,6 @@ const CONTENT = {
         summaryHeader: "📝 **Resumo do Pedido:**",
         waitLink: "Aguardando confirmação..."
     },
-
     testing: {
         guideLink: "Instale o app: pandda.vip/guia",
         options: "Digite **1** p/ Testar Agora ou **2** p/ Agendar.",
@@ -57,18 +67,15 @@ const CONTENT = {
         askAdult: "Liberar conteúdo Adulto? (Sim/Não)",
         success: "Obrigado {NAME}! Solicitação enviada. Aguarde seus dados."
     },
-
     faq: [
         "**Onde usar?** 🌍 Smart TV, Celular, PC.",
         "**Pagamento?** 💳 Pix e Cartão.",
         "**É assinatura?** ✍️ Não, é pré-pago sem fidelidade.",
         "**Quantas telas?** 📺 1, 2 ou 3 dependendo do plano."
     ],
-
     errors: {
         invalidOption: "Opção inválida. Tente novamente.",
         fallback: "Não entendi. Digite 0 para voltar ao menu."
     },
-    
     support: "Chamando um atendente humano... 👩‍💻 Aguarde."
 };
